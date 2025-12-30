@@ -1,5 +1,5 @@
 export const DataHandler = () => {
-    /* ======== START OF INIT =========== */
+    /* ======== START OF MAIN INIT =========== */
     const SAVEDATA = localStorage.getItem('ToDoList');
     let rawList = [];
 
@@ -26,11 +26,12 @@ export const DataHandler = () => {
      * @property {'low'|'medium'|'high'} - how urgent the task is
      * @property {string} notes - additional information about the task
      * @property {Array<Object>} subtasks - additional 
+     * @property {Array<String>} tags - tags
      */
     class ToDo {
         constructor(config) {
             const { title, description, dueDate, 
-                priority, notes, subtasks } = config;
+                priority, notes, subtasks, tags } = config;
 
             this.title = title;
             this.id = crypto.randomUUID();
@@ -41,6 +42,9 @@ export const DataHandler = () => {
             this.status = false; // Completion state
             this.notes = notes;
             this.subtasks = subtasks;
+            this.tags = tags;
+
+            this.__isSubtask = this instanceof Subtask;
         };
 
         edit(property, change) {
@@ -71,25 +75,71 @@ export const DataHandler = () => {
         };
     };
 
-    // Rehydrate the task list
-    const ToDoList = rawList.map(taskData => new ToDo(taskData));
+    class Subtask extends ToDo {
+        constructor(config) {
+            super(config);
 
+            this.subtasks = null;
+        }
+
+        addSubtask() {
+            throw new Error('Subtasks cannot have sub-subtasks of their own.')
+        }
+
+        removeSubtask() {
+            throw new Error('Subtasks do not have sub-subtasks of their own.')
+        }
+    }
+
+    /* Adding new methods to account for Subtask */
+    ToDo.prototype.addSubtask = function(config) {
+        this.subtasks.push(new Subtask(config));
+        commonUpdateEvent();
+    };
+
+    ToDo.prototype.removeSubtask = function(id) {
+        const subtaskToRemove = this.subtasks.findIndex(task => task.id === id);
+        if (subtaskToRemove !== 1) this.subtasks.splice(subtaskToRemove, 1);
+        commonUpdateEvent();
+    }
+    /* Adding new methods to account for Subtask */
+
+    // Rehydrate helper
+    const rehydrateTask = (data) => {
+        const isSubtask = data.subtasks === null || 
+                    data.subtasks === undefined ||
+                    data.__isSubtask;
+        
+        const task = isSubtask ? new Subtask(data) : new ToDo(data);
+        
+        if (task.subtasks && Array.isArray(task.subtasks)) {
+            task.subtasks = task.subtasks.map(subtaskData => 
+                rehydrateTask({ ...subtaskData, _isSubtask: true })
+            );
+        }
+        
+        return task;
+    };
+
+    // Rehydrate the entire list
+    const ToDoList = rawList.map(taskData => rehydrateTask(taskData));
+   
     if (!SAVEDATA) {
         localStorage.setItem('ToDoList', JSON.stringify(ToDoList));
     }
 
-    /* ======== END OF INIT =========== */
+    /* ======== END OF MAIN INIT =========== */
 
-    const addTask = (config) => {
+    const addTask = (targetList, config) => {
         const newTask = new ToDo(config);
-        ToDoList.push(newTask);
+        targetList.push(newTask);
         commonUpdateEvent()
     };
 
-    const removeTask = (id) => {
-        const taskToRemove = ToDoList.findIndex((task) => task.id === id);
+    const removeTask = (targetList, id) => {
+        const taskToRemove = targetList.findIndex((task) => task.id === id);
 
-        if (taskToRemove !== -1) ToDoList.splice(taskToRemove, 1);
+        if (taskToRemove !== -1) targetList.splice(taskToRemove, 1);
         commonUpdateEvent();
     };
 
