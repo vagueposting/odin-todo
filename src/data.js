@@ -1,10 +1,22 @@
 export const DataHandler = () => {
-    // Initialization
-    const ToDoList = []
-    if (!localStorage.getItem('ToDoList')) {
-        localStorage.setItem('ToDoList', JSON.stringify(ToDoList));
-    }
-    const commonUpdateEvent = new CustomEvent('tasks-updated');
+    /* ======== START OF INIT =========== */
+    const SAVEDATA = localStorage.getItem('ToDoList');
+    let rawList = [];
+
+    try {
+        rawList = SAVEDATA ? JSON.parse(SAVEDATA) : [];
+        if (!Array.isArray(rawList)) throw new Error(
+            'Stored data is not an array');
+    } catch (error) {
+        console.warn(
+            'Failed to parse saved data, starting fresh:',
+             error.message);
+        rawList = [];
+        localStorage.removeItem('ToDoList');
+    }    
+
+    const commonUpdateEvent = () => document.dispatchEvent(
+        new CustomEvent('tasks-updated'));
 
     /**
      * @typedef {Object} TaskConfig
@@ -23,7 +35,7 @@ export const DataHandler = () => {
             this.title = title;
             this.id = crypto.randomUUID();
             this.description = description;
-            this.createdDate: new Date();
+            this.createdDate = new Date();
             this.dueDate = dueDate;
             this.priority = priority;
             this.status = false; // Completion state
@@ -38,7 +50,7 @@ export const DataHandler = () => {
 
             if (this[property] === null || this[property] === undefined) {
                 this[property] = change;
-                document.dispatchEvent(commonUpdateEvent);
+                commonUpdateEvent();
                 return true;
             }
 
@@ -48,38 +60,53 @@ export const DataHandler = () => {
 
             if (typeof change === typeof this[property]) {
                 this[property] = change;
-                document.dispatchEvent(commonUpdateEvent);
+                commonUpdateEvent();
                 return true;
             };
         };
 
         toggle() {
             this.status = !this.status
+            commonUpdateEvent();
         };
     };
+
+    // Rehydrate the task list
+    const ToDoList = rawList.map(taskData => new ToDo(taskData));
+
+    if (!SAVEDATA) {
+        localStorage.setItem('ToDoList', JSON.stringify(ToDoList));
+    }
+
+    /* ======== END OF INIT =========== */
 
     const addTask = (config) => {
         const newTask = new ToDo(config);
         ToDoList.push(newTask);
-        document.dispatchEvent(commonUpdateEvent)
+        commonUpdateEvent()
     };
 
     const removeTask = (id) => {
         const taskToRemove = ToDoList.findIndex((task) => task.id === id);
 
-        if (taskToRemove) ToDoList.splice(taskToRemove, 1);
-        document.dispatchEvent(commonUpdateEvent);
+        if (taskToRemove !== -1) ToDoList.splice(taskToRemove, 1);
+        commonUpdateEvent();
     };
 
     const viewList = () => {
         return structuredClone(ToDoList);
     };
 
+    const clearList = () => {
+        ToDoList.length = 0;
+        commonUpdateEvent();
+    }
+
     // Helper to save to localStorage
     const saveToStorage = () => {
         const savedList = JSON.parse(localStorage.getItem('ToDoList'));
 
-        if (JSON.stringify(viewList()) != JSON.stringify(savedList)) {
+        if (JSON.stringify(viewList()) !== JSON.stringify(savedList)) {
             localStorage.setItem('ToDoList', JSON.stringify(viewList()));
             return true;
         } else return false;
@@ -93,5 +120,7 @@ export const DataHandler = () => {
 
     return { addTask, 
         removeTask,
-        viewList };
+        viewList,
+        clearList
+    };
 }
