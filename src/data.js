@@ -130,16 +130,16 @@ export const DataHandler = () => {
 
     /* ======== END OF MAIN INIT =========== */
 
-    const addTask = (targetList, config) => {
+    const addTask = (config) => {
         const newTask = new ToDo(config);
-        targetList.push(newTask);
+        ToDoList.push(newTask);
         commonUpdateEvent()
     };
 
-    const removeTask = (targetList, id) => {
-        const taskToRemove = targetList.findIndex((task) => task.id === id);
+    const removeTask = (id) => {
+        const taskToRemove = ToDoList.findIndex((task) => task.id === id);
 
-        if (taskToRemove !== -1) targetList.splice(taskToRemove, 1);
+        if (taskToRemove !== -1) ToDoList.splice(taskToRemove, 1);
         commonUpdateEvent();
     };
 
