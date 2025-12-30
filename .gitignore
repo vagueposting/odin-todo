@@ -1,0 +1,12 @@
+# Dependency directory (Never upload this! It's huge.)
+node_modules/
+
+# Webpack output (The "dist" folder we discussed)
+dist/
+
+# Logs
+npm-debug.log*
+
+# OS metadata
+.DS_Store
+Thumbs.db
