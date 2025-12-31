@@ -1,3 +1,5 @@
+import { format } from 'date-fns';
+
 export const DisplayHandler = (data) => {
     const documentBody = document.querySelector('body');
     
@@ -90,8 +92,50 @@ const components = {
                 shell.classList.add('description');
 
                 return shell;
+            }],
+
+            ['due-date', () => {
+                const shell = document.createElement('span');
+                shell.textContent = format(task.dueDate, 'dd MMMM, yyyy');
+                shell.classList.add('due-date')
+
+                return shell;
+            }],
+
+            ['subtasks', () => {
+                const shell = document.createElement('span');
+                shell.classList.add('subtasks')
+                shell.textContent = `${task.subtasks.length} subtasks`
+
+                return shell;
+            }],
+
+            ['tags', () => {
+                const { tags } = task;
+                const shell = document.createElement('div');
+                shell.classList.add('tagList');
+
+                tags.forEach((t) => {
+                    const tagElement = document.createElement('span');
+                    tagElement.textContent = t;
+                    shell.appendChild(tagElement);
+                })
+
+                return shell;
+            }],
+
+            ['more', () => {
+                const shell = document.createElement('span');
+                const link = document.createElement('a');
+                link.textContent = 'more info...';
+
+                shell.classList.add('more-details');
+
+                shell.appendChild(link);
+                
+                return shell;
             }]
-        ])
+        ]);
 
         return assembleParts(parts, 'base');
     }

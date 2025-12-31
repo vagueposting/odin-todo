@@ -172,7 +172,7 @@ export const DataHandler = () => {
      *      @property {'SOME' | 'ALL'} typeScope - scope of query
      */
     const filterList = (list = null, filters) => {
-        const filteredList = list === null ? viewList() : list;
+        let filteredList = list === null ? viewList() : list;
         const { title, createdDate, dueDate, priority, status, tags } = filters;
 
         /**
@@ -334,6 +334,8 @@ export const DataHandler = () => {
     return { addTask, 
         removeTask,
         viewList,
+        sortList,
+        filterList,
         clearList
     };
 }
