@@ -1,3 +1,5 @@
+import { isAfter, isBefore, isSameDay } from 'date-fns';
+
 export const DataHandler = () => {
     /* ======== START OF MAIN INIT =========== */
     const SAVEDATA = localStorage.getItem('ToDoList');
@@ -23,7 +25,7 @@ export const DataHandler = () => {
      * @property {string} title - the name of the task
      * @property {string} description - description of the task
      * @property {Date} dueDate - due date of the task
-     * @property {'low'|'medium'|'high'} - how urgent the task is
+     * @property {'low'|'medium'|'high'} priority - how urgent the task is
      * @property {string} notes - additional information about the task
      * @property {Array<Object>} subtasks - additional 
      * @property {Array<String>} tags - tags
@@ -146,6 +148,132 @@ export const DataHandler = () => {
     const viewList = () => {
         return structuredClone(ToDoList);
     };
+
+    /**
+     * Returns a list of tasks but filtered according to parameters.
+     * Use 'null' for filters that are not in use.
+     * @param {Array<Object>} list - specific list array object to be filtered through. use 'null' if starting from scratch.
+     * 
+     * @param {Object} filters - object containing all filters
+     * @property {Object} title - search query for title
+     *      @property {string} query - text being searched for
+     *      @property {'INCLUDES' | 'EXCLUDES'} type - query type
+     * @property {Object} createdDate - search query for creation date
+     *      @property {Date} query - date being searched for
+     *      @property {'BEFORE' | 'DURING' | 'AFTER'} type - query type
+     * @property {Object} dueDate - search query for dueDate
+     *      @property {Date} query - date being searched for
+     *      @property {'BEFORE' | 'DURING' | 'AFTER'} type - query type
+     * @property {'low' | 'medium' | 'high'} priority - query for priority
+     * @property {Boolean} status - completion state of task
+     * @property {Object} tags - query list for tags
+     *      @property {Array<string>} tagList - list of tags
+     *      @property {'INCLUDES' | 'EXCLUDES'} type - query direction
+     *      @property {'SOME' | 'ALL'} typeScope - scope of query
+     */
+    const filterList = (list = null, filters) => {
+        const filteredList = list === null ? viewList() : list;
+        const { title, createdDate, dueDate, priority, status, tags } = filters;
+
+        /**
+         * date helper. use for either dueDate or createdDate
+         * @param {Object} filter - object representing a date filter query
+         * @param {'dueDate' | 'createdDate' } category - specific date query
+         */
+        const dateFilter = (filter, category) => {
+            const { query, type } = filter;
+
+            switch (type) {
+                case 'BEFORE':
+                    filteredList = filteredList.filter((task) => 
+                        isBefore(task[category], query)
+                    );
+                    break;
+                case 'DURING':
+                    filteredList = filteredList.filter((task) => 
+                        isSameDay(task[category], query)
+                    );
+                    break;
+                case 'AFTER':
+                    filteredList = filteredList.filter((task) => 
+                        isAfter(task[category], query)
+                    );
+                    break;
+            }
+        };
+
+        /* Individual filters */
+
+        if (title) {
+            switch (title.type) {
+                case 'INCLUDES':
+                    filteredList = filteredList.filter(
+                        (task) => task.title.includes(title.query)
+                    )
+                    break;
+                case 'EXCLUDES':
+                    filteredList = filteredList.filter(
+                        (task) => !task.title.includes(title.query)
+                    )
+                    break;
+                default:
+                    console.error('The filter did not include a query type').
+                    break;
+            };
+        };
+
+        if (createdDate) {
+            if (createdDate.query instanceof Date) dateFilter(createdDate, 'createdDate')
+        }
+
+        if (dueDate) {
+            if (dueDate.query instanceof Date) dateFilter(dueDate, 'dueDate');
+        }
+
+        if (priority) {
+            const options = ['low', 'medium', 'high']
+
+            if (options.includes(priority)) {
+                filteredList = filteredList.filter(
+                    (task) => task.priority === priority);
+            }
+        };
+
+        if (status != null) {
+            filteredList = filteredList.filter((task) => task.status === status);
+        };
+
+        if (tags) {
+            const  { tagList, type, typeScope } = tags; // 'tagList' is an array.
+            switch (type) {
+                case 'INCLUDES':
+                    switch (typeScope) {
+                        case 'SOME':
+                            filteredList = filteredList.filter((task) => 
+                                task.tags.some(t => tagList.includes(t)));
+                            break;
+                        case 'ALL':
+                            filteredList = filteredList.filter((task) => 
+                                tagList.every(t => task.tags.includes(t)));
+                            break;
+                    };
+                    break;
+                case 'EXCLUDES':
+                    switch (typeScope) {
+                        case 'SOME':
+                            throw new Error('Ambiguous filtering logic');
+                            break;
+                        case 'ALL':
+                            filteredList = filteredList.filter((task) =>
+                                !task.tags.some(t => tagList.includes(t)));
+                            break;
+                    };
+                    break;
+            }
+        }
+
+        return filteredList;
+    }
 
     const clearList = () => {
         ToDoList.length = 0;
