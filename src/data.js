@@ -275,6 +275,41 @@ export const DataHandler = () => {
         return filteredList;
     }
 
+    const sortList = (list = null, sortBy = 'DUE', direction = 'DESC') => {
+        const sourceList = list === null ? viewList() : list;
+        const itemsToSort = [...sourceList]; 
+
+        return itemsToSort.sort((a, b) => {
+            let comparison = 0;
+
+            switch (sortBy) {
+                case 'TITLE':
+                    comparison = a.title.localeCompare(b.title);
+                    break;
+                case 'CREATE':
+                    comparison =  a.createdDate - b.createdDate;
+                    break;
+                case 'DUE':
+                    comparison = a.dueDate - b.dueDate;
+                    break;
+                case 'PRIORITY':
+                    const weights = { high: 3, medium: 2, low: 1 };
+                    comparison = weights[a.priority] - weights[b.priority];
+                    break;
+                case 'SUBTASKS':
+                    // Sort by how many subtasks you have
+                    comparison = a.subtasks.length - b.subtasks.length;
+                    break;
+                case 'TAGS':
+                    // Same logic. Sort by how many tasks you have
+                    comparison = a.tags.length - b.tags.length;
+                    break;
+            }
+
+            return direction === 'ASC' ? comparison : -comparison;
+        });
+    };
+
     const clearList = () => {
         ToDoList.length = 0;
         commonUpdateEvent();
