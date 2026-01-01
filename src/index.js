@@ -9,5 +9,4 @@ import './style/checkbox.css';
 
 
 const data = DataHandler();
-
 const display = DisplayHandler(data);
