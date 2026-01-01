@@ -32,7 +32,7 @@ export const DataHandler = () => {
     class ToDo {
         constructor(config) {
             const { title, description, dueDate, 
-                priority, notes, subtasks, tags } = config;
+                priority, subtasks, tags } = config;
 
             this.title = title;
             this.id = crypto.randomUUID();
@@ -324,10 +324,15 @@ export const DataHandler = () => {
         } else return false;
     };
 
+    // Add a task when this is heard.
+    document.addEventListener('task-added', function(e) {
+        addTask(e.detail);
+    })
+
     // Save whenever list is updated
     document.addEventListener('tasks-updated', saveToStorage);
 
-    // Bonus: Auto-save on page unload
+    // Auto-save on page unload
     window.addEventListener('beforeunload', saveToStorage);
 
     return { addTask, 
