@@ -59,7 +59,8 @@ body {
     align-items: center;
 }
 
-.controls button, .todo, div[popover], .tagList span {
+.controls button, .todo, 
+.tagList span {
     /* From https://css.glass */
     background: rgba(255, 255, 255, 0.40);
     border-radius: 16px;
@@ -72,7 +73,36 @@ body {
 .controls button {
     width: 30%;
     aspect-ratio: 1 / 1;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+
     cursor: pointer;
+
+    outline: solid 1px transparent;
+    transition: outline 0.25s linear, transform 0.5s linear;
+}
+
+.controls button:hover {
+    transform: scale(105%);
+}
+
+.controls button:active {
+    outline: solid 1px white;
+}
+
+.controls button svg {
+    width: 80%; 
+    height: 80%;
+    fill: black; 
+}
+
+.controls button svg path {
+    width: 3rem;
+}
+
+.controls button:first-child {
+    anchor-name: --new-button-anchor;
 }
 
 .todoGroup {
@@ -190,6 +220,75 @@ body {
     color: #244da5;
     text-decoration-color: inherit;
     text-decoration: underline dotted;
+}
+
+[popover] {
+    display: relative;
+
+    padding: 1.5rem;
+
+    font-size: 0.75rem;
+
+    /* From https://css.glass */
+    background: rgba(255, 255, 255, 0.65);
+    border-radius: 16px;
+    box-shadow: 0 4px 30px rgba(0, 0, 0, 0.1);
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(11.2px);
+    border: 1px solid rgba(255, 255, 255, 0.3);
+
+    opacity: 0;
+    transition: opacity 0.5s, overlay 0.5s allow-discrete, display 0.5s allow-discrete;
+}
+
+[popover]:popover-open {
+    opacity: 1;
+}
+
+[popover] form {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+}
+
+[popover] form div {
+    display: flex;
+}
+
+.standardInput {
+    flex-direction: row;
+    gap: 0.50rem;
+}
+
+.longTextInput {
+    flex-direction: column;
+    gap: 0.25rem;
+}
+
+[popover] form div input,
+[popover] form div select,
+[popover] form div textarea {
+    border-radius: 8px;
+}
+
+@starting-style {
+    [popover]:popover-open {
+        opacity: 0;
+    }
+}
+
+[popover]#createNewTask {
+    margin: 0;
+    position-anchor: --new-button-anchor;
+
+    top: anchor(top);
+    left: anchor(right);
+
+    margin-left: 1rem;
+}
+
+[popover]#createNewTask label {
+    font-weight: bold;
 }
 
 /* ANIMATIONS */
