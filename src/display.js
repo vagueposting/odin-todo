@@ -1,4 +1,4 @@
-import { format } from 'date-fns';
+import { format, isBefore } from 'date-fns';
 
 export const DisplayHandler = (data) => {
     const documentBody = document.querySelector('body');
@@ -90,14 +90,18 @@ const components = {
                 const shell = document.createElement('p');
                 shell.textContent = task.description;
                 shell.classList.add('description');
+        
 
                 return shell;
             }],
 
             ['due-date', () => {
+                const { dueDate } = task
                 const shell = document.createElement('span');
-                shell.textContent = format(task.dueDate, 'dd MMMM, yyyy');
-                shell.classList.add('due-date')
+                shell.textContent = format(dueDate, 'dd MMMM, yyyy');
+                shell.classList.add('due-date');
+
+                if (!isBefore(new Date(), dueDate)) shell.classList.add('urgent');
 
                 return shell;
             }],
