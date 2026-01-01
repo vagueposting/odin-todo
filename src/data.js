@@ -26,7 +26,6 @@ export const DataHandler = () => {
      * @property {string} description - description of the task
      * @property {Date} dueDate - due date of the task
      * @property {'low'|'medium'|'high'} priority - how urgent the task is
-     * @property {string} notes - additional information about the task
      * @property {Array<Object>} subtasks - additional 
      * @property {Array<String>} tags - tags
      */
@@ -38,11 +37,10 @@ export const DataHandler = () => {
             this.title = title;
             this.id = crypto.randomUUID();
             this.description = description;
-            this.createdDate = new Date();
+            this.createdDate = new Date;
             this.dueDate = dueDate;
             this.priority = priority;
             this.status = false; // Completion state
-            this.notes = notes;
             this.subtasks = subtasks;
             this.tags = tags;
 
@@ -136,6 +134,7 @@ export const DataHandler = () => {
         const newTask = new ToDo(config);
         ToDoList.push(newTask);
         commonUpdateEvent()
+        console.log(viewList());
     };
 
     const removeTask = (id) => {
