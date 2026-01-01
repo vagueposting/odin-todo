@@ -129,7 +129,6 @@ export const DisplayHandler = (data) => {
             }],
 
             ['due-date', () => {
-                console.log("Current Task:", task);
                 const { dueDate } = task
                 const shell = document.createElement('span');
                 shell.textContent = format(dueDate, 'dd MMMM, yyyy');
@@ -174,15 +173,15 @@ export const DisplayHandler = (data) => {
             ['tags', () => {
                 const { tags } = task;
                 const shell = document.createElement('div');
+                shell.classList.add('tagList');
 
                 if (tags) {
-
-                tags.forEach((t) => {
-                    shell.classList.add('tagList');
-                    const tagElement = document.createElement('span');
-                    tagElement.textContent = t;
-                    shell.appendChild(tagElement);
-                })};
+                    tags.forEach((t) => {
+                        const tagElement = document.createElement('span');
+                        tagElement.textContent = t;
+                        shell.appendChild(tagElement);
+                    })
+                };
 
                 return shell;
             }],
@@ -301,9 +300,12 @@ export const DisplayHandler = (data) => {
 
                             taskDetails.subtasks = [];
                             taskDetails.tags = [];
-                            
-                            console.log('Task details:', taskDetails);
-                            data.addTask(taskDetails);
+
+                            const tasksAdded = new CustomEvent('task-added', {
+                                detail: taskDetails
+                            });
+                            document.dispatchEvent(tasksAdded);
+
                             form.reset();
                         });
                     }
@@ -317,13 +319,25 @@ export const DisplayHandler = (data) => {
     }
 }
 
-    documentBody.appendChild(assembleParts(sections, 'container'));
+    const refreshList = () => {
+        const container = document.querySelector('.container');
+        const oldList = document.querySelector('.todoGroup');
+        
+        if (oldList) oldList.remove();
+        
+        const newList = sections.get('todos')();
+        container.appendChild(newList);
+    };
 
-    documentBody.appendChild(
-        components.popover(
-            components.newTask(),
-            'createNewTask'
-        ));
+    documentBody.appendChild(assembleParts(sections, 'container'));
+    
+    documentBody.appendChild(components.popover(
+        components.newTask(), 'createNewTask'));
+
+    document.addEventListener('tasks-updated', () => {
+        console.log("Tasks updated! Re-rendering list...");
+        refreshList();
+    });
 }
 
 const assembleParts = (parts, baseName) => {
