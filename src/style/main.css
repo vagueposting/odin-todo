@@ -96,7 +96,7 @@ body {
 .controls button svg {
     width: 80%; 
     height: 80%;
-    fill: var(--main-text); 
+    fill: var(--main-text);  
     stroke-width: 0px;
 }
 
@@ -295,6 +295,41 @@ body {
 
 [popover]#createNewTask label {
     font-weight: bold;
+}
+
+.tag-container {
+  display: flex;
+  flex-wrap: wrap;
+  align-content: flex-start;
+  padding: 5px;
+  border: 1px solid #ccc;
+  border-radius: 4px;
+  background-color: #fff;
+}
+
+/* Individual Tag Style */
+.tag {
+  background-color: #e0e0e0;
+  border-radius: 3px;
+  margin: 3px;
+  padding: 5px 8px;
+  display: flex;
+  align-items: center;
+}
+
+.tag-close {
+  margin-left: 8px;
+  cursor: pointer;
+  font-weight: bold;
+}
+
+/* The invisible input */
+.tag-container input {
+  flex: 1;
+  border: none;
+  outline: none; /* Removes the focus ring */
+  padding: 5px;
+  min-width: 100px;
 }
 
 /* ANIMATIONS */
