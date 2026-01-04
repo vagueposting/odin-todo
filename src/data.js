@@ -1,6 +1,6 @@
 import { isAfter, isBefore, isSameDay } from 'date-fns';
 
-export const DataHandler = () => {
+export const DataHandler = (state) => {
     /* ======== START OF MAIN INIT =========== */
     const SAVEDATA = localStorage.getItem('ToDoList');
     let rawList = [];
@@ -332,6 +332,15 @@ export const DataHandler = () => {
 
         addTask(e.detail);
     })
+
+    document.addEventListener('list-filtered', function(e) {
+        const { list, config } = e.detail;
+        const filteredResult = filterList(list, config);
+
+        document.dispatchEvent(new CustomEvent('render-filtered-list', {
+            detail: filteredResult
+        }));
+    });
 
     document.addEventListener('clear-list', clearList());
 

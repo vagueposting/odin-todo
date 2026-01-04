@@ -3,6 +3,8 @@ import { TextControls } from './utils.js';
 
 export const DisplayHandler = (data) => {
     const documentBody = document.querySelector('body');
+
+    let currentVisibleList = data.viewList();
     
     const sections = new Map([
         ['container', () => {
@@ -95,9 +97,7 @@ export const DisplayHandler = (data) => {
             const shell = document.createElement('div');
             shell.classList.add('todoGroup');
 
-            const TDL = data.viewList();
-
-            TDL.forEach((task) => {
+            currentVisibleList.forEach((task) => {
                 shell.appendChild(components.todo(task));
             })
 
@@ -232,35 +232,6 @@ export const DisplayHandler = (data) => {
      * @property {'new' | 'filter'} type
      */
     form: (type) => {
-        const applyLabel = (id, labelText) => {
-            const label = document.createElement('label');
-            label.textContent = labelText;
-            label.setAttribute('for', id);
-            return label;
-        }
-
-        const radioHelper = (element, options) => {
-            
-        }
-
-        const inputHelper = (e, type, id, labelText) => {
-            const shell = document.createElement('div');
-            const divClass = e === 'textarea' ? 'longTextInput' : 'standardInput';
-            shell.classList.add(divClass);
-
-            const label = applyLabel(id, labelText)
-
-            const input = document.createElement(e);
-            if (e !== 'textarea') input.setAttribute('type', type);
-            input.name = id;
-            input.id = id;
-
-            shell.appendChild(label); 
-            shell.appendChild(input);
-
-            return shell;
-        };
-
         const form = new Map([
             ['shell', () => {
                 const shell = document.createElement('form');
@@ -269,27 +240,101 @@ export const DisplayHandler = (data) => {
                 return shell;
             }],
             ['title', () => {
-                return inputHelper('input', 'text', `${type}-title`, 'Title');
+                const title = inputHelper('input', 'text', `${type}-title`, 'Title');
+                
+                if (type === 'filter') {
+                    const filterDirection = radioHelper(
+                        `${type}-title`,
+                        [
+                            {
+                                dir: 'INCLUDES',
+                                label: 'includes'
+                            },
+                            {
+                                dir: 'EXCLUDES',
+                                label: 'excludes'
+                            }
+                        ]
+                    )
+
+                    title.appendChild(filterDirection);
+                }
+
+                return title;
             }],
             ['description', () => {
                 if (type === 'filter') return;
                 return inputHelper('textarea', null, `${type}-description`, 'Description');
             }],
-            ['dueDate', () => {
-                const shell = inputHelper('input', 'date', `${type}-due`, 'Due Date');
+            ['createdDate', () => {
+                if (type === 'task') return;
 
-                const dateInput = shell.querySelector(`#${type}-due`);
-                console.log(dateInput);
+                const createdDate = inputHelper('input', 
+                    'date', 
+                    `${type}-created`, 
+                    'Date Created',
+                    false);
+
+                const filterDirection = radioHelper(
+                    `${type}-created`,
+                    [
+                        {
+                            dir: 'BEFORE',
+                            label: 'before'
+                        },
+                        {
+                            dir: 'DURING',
+                            label: 'during',
+                        },
+                        {
+                            dir: 'AFTER',
+                            label: 'after'
+                        }
+                    ]
+                )
+
+                createdDate.appendChild(filterDirection);
+
+                return createdDate;
+            }],
+            ['dueDate', () => {
+                const dueDate = inputHelper('input', 'date', `${type}-due`, 'Due Date');
+
+                const dateInput = dueDate.querySelector(`#${type}-due`);
 
                 const localToday = getLocalDateToday();
                 dateInput.defaultValue = localToday; 
                 dateInput.value = localToday;
                 dateInput.min = localToday;
 
-                return shell;
+                if (type === 'filter') {
+                    const filterDirection = radioHelper(
+                        `${type}-due`,
+                        [
+                            {
+                                dir: 'BEFORE',
+                                label: 'before'
+                            },
+                            {
+                                dir: 'DURING',
+                                label: 'during',
+                            },
+                            {
+                                dir: 'AFTER',
+                                label: 'after'
+                            }
+                        ]
+                    )
+
+                    dueDate.appendChild(filterDirection);
+                };
+
+                return dueDate;
             }],
             ['priority', () => {
                 const priorities = ['low', 'medium', 'high'];
+                if (type === 'filter') priorities.unshift('N/A');
+
                 const form = inputHelper('select', 'select', 
                     `${type}-priority`, 
                     'Priority Level');
@@ -298,13 +343,20 @@ export const DisplayHandler = (data) => {
 
                 priorities.forEach(priority => {
                     const option = document.createElement('option');
-                    option.setAttribute('value', priority);
+                    option.value = priority === 'N/A' ? null : priority;
                     option.textContent = TextControls
                         .capitalizeEachWord(priority);
                     select.appendChild(option);
                 })
 
                 return form;
+            }],
+            ['status', () => {
+                if (type === 'task') return;
+
+                return inputHelper('input', 'checkbox', `${type}-status`,
+                    'Completed?'
+                );
             }],
             ['tags', () => {
                 let tags = [];
@@ -336,7 +388,7 @@ export const DisplayHandler = (data) => {
                     return div;
                 }
 
-                const shell = document.createElement('div');
+                const shell = document.createElement('fieldset');
                 shell.classList.add(`tagContainer`);
                 shell.id = `${type}-tagContainer`;
 
@@ -359,12 +411,45 @@ export const DisplayHandler = (data) => {
 
                 shell.appendChild(input);
 
+                if (type === 'filter') {
+                    const filterType = radioHelper(
+                        `${type}-tags-filterType`,
+                        [
+                            {
+                                dir: 'INCLUDES',
+                                label: 'includes'
+                            },
+                            {
+                                dir: 'EXCLUDES',
+                                label: 'excludes'
+                            }
+                        ]
+                    )
+
+                    const filterScope = radioHelper(
+                        `${type}-tags-filterScope`,
+                        [
+                            {
+                                dir: 'SOME',
+                                label: 'some',
+                            },
+                            {
+                                dir: 'ALL',
+                                label: 'all'
+                            }
+                        ]
+                    )
+
+                    shell.appendChild(filterType);
+                    shell.appendChild(filterScope);
+                }
+
                 return shell;
             }],
             ['submit-task', () => {
                 if (type === 'filter') return;
 
-                const shell = document.createElement('div');
+                const shell = document.createElement('fieldset');
                 const submit = document.createElement('button');
                 submit.setAttribute('type', 'button')
                 submit.textContent = 'submit';
@@ -381,7 +466,8 @@ export const DisplayHandler = (data) => {
                             const taskDetails = {};
                             
                             keys.forEach(key => {
-                                const element = document.querySelector(`#${type}-${key}`);
+                                const identifier = `${type}-${key}`
+                                const element = document.querySelector(`#${identifier}`);
                                 if (element) {
                                     if (key === 'due') {
                                         const [year, month, day] = element.value.split('-').map(Number);
@@ -425,6 +511,81 @@ export const DisplayHandler = (data) => {
 
                 shell.appendChild(submit);
 
+                setTimeout(() => {
+                    const form = submit.closest('form');
+
+                    if (form) {
+                        submit.addEventListener('click', (event) => {
+                            event.preventDefault();
+                            
+                            const keys = ['title', 'created', 'due', 'priority', 'status', 'tags'];
+
+                            const filterDetails = {};
+                            
+                            keys.forEach(key => {
+                                const identifier = `${type}-${key}`
+                                const element = document.querySelector(`#${identifier}`);
+
+                                if (element) {
+                                    const filters = [];
+                                    // Most of the time, this array will only have one element
+                                    // But if we're looking at tags...
+
+                                    if (key === 'tags') {
+                                        filters.push(
+                                            document.querySelector(
+                                                `input[name="${identifier}-filterType-radio"]:checked`
+                                        )?.value);
+                                        filters.push(
+                                            document.querySelector(
+                                                `input[name="${identifier}-filterScope-radio"]:checked`
+                                        )?.value);
+                                    } else {
+                                        filters.push(
+                                            document.querySelector(
+                                                `input[name="${identifier}-radio"]:checked`)?.value);
+                                    };
+
+                                    if (key === 'due' || key === 'created') {
+                                        
+                                        const [year, month, day] = element.value.split('-').map(Number);
+                                        filterDetails[`${key}Date`].query = new Date(year, month - 1, day);
+                                        filterDetails[`${key}Date`].type = filters[0];
+
+                                    } else if (key === 'tags') {
+
+                                        const tags = JSON.parse(element.getAttribute(`${type}-tagList`));
+                                        filterDetails[key].tagList = tags;
+                                        filterDetails[key].type = filters[0];
+                                        filterDetails[key].typeScope = filters[1];
+
+                                        // Reset this part of the form
+                                        const tagDivs = document.querySelectorAll(
+                                            `#${type}-tagContainer > .tag`);
+                                        tagDivs.forEach(tag => tag.remove());
+                                        
+                                    } else if (key === 'priority') {
+                                        filterDetails[key] = element.value;
+                                    } else if (key === 'status') {
+                                        filterDetails[key] = element.checked;
+                                    } else {
+                                        filterDetails[key].query = element.value;
+                                        filterDetails[key].type = filters[0];
+                                    }
+                                }
+                            });
+
+                            const listFiltered = new CustomEvent('list-filtered', {
+                                detail: { list: currentVisibleList, config: filterDetails }
+                            });
+                            document.dispatchEvent(listFiltered);
+
+                            form.reset();
+                        });
+
+                    }
+                })
+
                 return shell;
             }]
         ])
@@ -433,13 +594,17 @@ export const DisplayHandler = (data) => {
     }
 }
 
-    const refreshList = () => {
+    const refreshList = (newListData = null) => {
         const container = document.querySelector('.container');
         const oldList = document.querySelector('.todoGroup');
         
         if (oldList) oldList.remove();
         
-        const newList = sections.get('todos')();
+        if (newListData) {
+            currentVisibleList = newListData;
+        } else {
+            currentVisibleList = data.viewList();
+        };
         container.appendChild(newList);
     };
 
@@ -452,9 +617,12 @@ export const DisplayHandler = (data) => {
         components.form('filter'), 'filterTasks'));
 
     document.addEventListener('tasks-updated', () => {
-        console.log("Tasks updated! Re-rendering list...");
         refreshList();
     });
+
+    document.addEventListener('render-filtered-list', (e) => {
+        refreshList(e.detail);
+    })
 }
 
 const assembleParts = (parts, baseName) => {
@@ -493,3 +661,62 @@ const getLocalDateToday = () => {
 
     return `${year}-${month}-${day}`;
 }
+
+const applyLabel = (id, labelText) => {
+    const label = document.createElement('label');
+    label.textContent = labelText;
+    label.setAttribute('for', id);
+    return label;
+}
+
+/**
+ * Returns a div with a collecetion of radio input elements
+ * @param {string} mainID - ID of specific property being queried  
+ * @param {Array<Object>} options 
+ *  @property {string} dir
+ *  @property {string} label
+ */
+const radioHelper = (mainID, options) => {
+    const shell = document.createElement('fieldset')
+    shell.classList.add('radio');
+
+    options.forEach(o => {
+        const opt = document.createElement('div');
+        const radio = document.createElement('input');
+        const label = document.createElement('label');
+
+        radio.type = 'radio';
+        radio.name = `${mainID}-radio`;
+        radio.id = `${mainID}-${o.dir}`
+        radio.value = o.dir;
+        if (o === options[0]) radio.setAttribute('checked', null);
+
+        label.textContent = o.label;
+        label.setAttribute('for', radio.id);
+
+        opt.appendChild(radio);
+        opt.appendChild(label);
+
+        shell.appendChild(opt);
+    });
+
+    return shell;
+}
+
+const inputHelper = (e, inputType, id, labelText) => {
+    const shell = document.createElement('fieldset');
+    const divClass = e === 'textarea' ? 'longTextInput' : 'standardInput';
+    shell.classList.add(divClass);
+
+    const label = applyLabel(id, labelText)
+
+    const input = document.createElement(e);
+    if (e !== 'textarea') input.setAttribute('type', inputType);
+    input.name = id;
+    input.id = id;
+
+    shell.appendChild(label); 
+    shell.appendChild(input);
+
+    return shell;
+};
