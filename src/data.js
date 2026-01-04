@@ -17,8 +17,8 @@ export const DataHandler = (state) => {
         localStorage.removeItem('ToDoList');
     }    
 
-    const commonUpdateEvent = () => document.dispatchEvent(
-        new CustomEvent('tasks-updated'));
+    const updateEvent = new CustomEvent('tasks-updated');
+    const commonUpdateEvent = () => { document.dispatchEvent(updateEvent) };
 
     /**
      * @typedef {Object} TaskConfig
@@ -106,18 +106,18 @@ export const DataHandler = (state) => {
 
     // Rehydrate helper
     const rehydrateTask = (data) => {
-        const isSubtask = data.subtasks === null || 
-                    data.subtasks === undefined ||
-                    data.__isSubtask;
+        const config = {
+            ...data,
+            dueDate: data.dueDate ? new Date(data.dueDate) : null,
+            createdDate: data.createdDate ? new Date(data.createdDate) : new Date()
+        };
         
-        const task = isSubtask ? new Subtask(data) : new ToDo(data);
+        const isSubtask = config.subtasks === null || config.__isSubtask;
+        const task = isSubtask ? new Subtask(config) : new ToDo(config);
         
         if (task.subtasks && Array.isArray(task.subtasks)) {
-            task.subtasks = task.subtasks.map(subtaskData => 
-                rehydrateTask({ ...subtaskData, _isSubtask: true })
-            );
+            task.subtasks = task.subtasks.map(sub => rehydrateTask(sub));
         }
-        
         return task;
     };
 
@@ -133,8 +133,7 @@ export const DataHandler = (state) => {
     const addTask = (config) => {
         const newTask = new ToDo(config);
         ToDoList.push(newTask);
-        commonUpdateEvent()
-        console.log(viewList());
+        commonUpdateEvent();
     };
 
     const removeTask = (id) => {
@@ -316,12 +315,7 @@ export const DataHandler = (state) => {
 
     // Helper to save to localStorage
     const saveToStorage = () => {
-        const savedList = JSON.parse(localStorage.getItem('ToDoList'));
-
-        if (JSON.stringify(viewList()) !== JSON.stringify(savedList)) {
-            localStorage.setItem('ToDoList', JSON.stringify(viewList()));
-            return true;
-        } else return false;
+        localStorage.setItem('ToDoList', JSON.stringify(ToDoList));
     };
 
     // Add a task when this is heard.
@@ -337,12 +331,14 @@ export const DataHandler = (state) => {
         const { list, config } = e.detail;
         const filteredResult = filterList(list, config);
 
+        console.dir(config);
+
         document.dispatchEvent(new CustomEvent('render-filtered-list', {
             detail: filteredResult
         }));
     });
 
-    document.addEventListener('clear-list', clearList());
+    document.addEventListener('clear-list', clearList);
 
     // Save whenever list is updated
     document.addEventListener('tasks-updated', saveToStorage);
@@ -350,11 +346,11 @@ export const DataHandler = (state) => {
     // Auto-save on page unload
     window.addEventListener('beforeunload', saveToStorage);
 
-    return { addTask, 
+    return { // addTask, 
         removeTask,
         viewList,
-        sortList,
-        filterList,
-        clearList
+        sortList // ,
+        // filterList,
+        // clearList
     };
 }

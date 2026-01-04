@@ -1,7 +1,7 @@
 import { createSVGElement, assembleParts } from './utils.js';
 import { components } from './components.js';
 
-export const DisplayHandler = (data) => {
+export const DisplayHandler = (data, state) => {
     const documentBody = document.querySelector('body');
 
     let currentVisibleList = data.viewList();
@@ -116,16 +116,16 @@ export const DisplayHandler = (data) => {
         } else {
             currentVisibleList = data.viewList();
         };
-        container.appendChild(newList);
+        container.appendChild(sections.get('todos')());
     };
 
     documentBody.appendChild(assembleParts(sections, 'container'));
     
     documentBody.appendChild(components.popover(
-        components.form('task'), 'createNewTask'));
+        components.form('task', currentVisibleList), 'createNewTask'));
 
     documentBody.appendChild(components.popover(
-        components.form('filter'), 'filterTasks'));
+        components.form('filter', currentVisibleList), 'filterTasks'));
 
     document.addEventListener('tasks-updated', () => {
         refreshList();
