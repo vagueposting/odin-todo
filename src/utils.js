@@ -97,6 +97,7 @@ export const radioHelper = (mainID, options) => {
 
 export const inputHelper = (e, inputType, id, labelText) => {
     const shell = document.createElement('fieldset');
+    if (id.includes('filter')) shell.setAttribute('disabled', null);
     const divClass = e === 'textarea' ? 'longTextInput' : 'standardInput';
     shell.classList.add(divClass);
 
@@ -112,3 +113,15 @@ export const inputHelper = (e, inputType, id, labelText) => {
 
     return shell;
 };
+
+export const propertyToggle = (id, targetFieldset) => {
+    const checkbox = document.createElement('input');
+    checkbox.type = 'checkbox';
+    checkbox.id = id;
+
+    checkbox.addEventListener('change', () => {
+        targetFieldset.disabled = !checkbox.checked;
+    });
+
+    return checkbox;
+}

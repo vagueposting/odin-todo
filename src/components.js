@@ -1,8 +1,10 @@
 import { format, isBefore } from 'date-fns';
 import { getLocalDateToday, inputHelper, 
-    radioHelper, assembleParts, TextControls } from "./utils.js";
+    radioHelper, assembleParts, TextControls,
+    propertyToggle } from "./utils.js";
 
 export const components = {
+
 todo: (task) => {
     const parts = new Map([
         ['base', () => {
@@ -116,6 +118,8 @@ todo: (task) => {
 
     return assembleParts(parts, 'base');
 },
+
+
 // popover-related components
 popover: (contents, id) => {
     const shell = document.createElement('div');
@@ -125,10 +129,11 @@ popover: (contents, id) => {
     shell.id = id;
     return shell;
 },
+
 /** Generic form component
  * @property {'new' | 'filter'} type
  */
-form: (type) => {
+form: (type, currentList) => {
     const form = new Map([
         ['shell', () => {
             const shell = document.createElement('form');
@@ -137,9 +142,16 @@ form: (type) => {
             return shell;
         }],
         ['title', () => {
+            const shell = document.createElement('div');
+            if (type === 'filter') shell.classList.add('filterOption')
+            
             const title = inputHelper('input', 'text', `${type}-title`, 'Title');
             
             if (type === 'filter') {
+                const toggle = propertyToggle(
+                    'enableFilter-title',
+                    title);
+
                 const filterDirection = radioHelper(
                     `${type}-title`,
                     [
@@ -154,10 +166,13 @@ form: (type) => {
                     ]
                 )
 
+                shell.appendChild(toggle);
                 title.appendChild(filterDirection);
-            }
-
-            return title;
+                shell.appendChild(title);
+                return shell;
+            } else {
+                return title;
+            };
         }],
         ['description', () => {
             if (type === 'filter') return;
@@ -166,11 +181,24 @@ form: (type) => {
         ['createdDate', () => {
             if (type === 'task') return;
 
+            const shell = document.createElement('div');
+            shell.classList.add('filterOption');
+
             const createdDate = inputHelper('input', 
                 'date', 
                 `${type}-created`, 
                 'Date Created',
                 false);
+
+            const toggle = propertyToggle(
+                'enableFilter-createdDate',
+                createdDate
+            )
+
+
+            const dateInput = createdDate.querySelector(`#${type}-created`);
+            dateInput.defaultValue = getLocalDateToday();
+            dateInput.max = getLocalDateToday();
 
             const filterDirection = radioHelper(
                 `${type}-created`,
@@ -190,11 +218,17 @@ form: (type) => {
                 ]
             )
 
+            shell.appendChild(toggle);
             createdDate.appendChild(filterDirection);
+            shell.appendChild(createdDate);
 
-            return createdDate;
+            return shell;
         }],
         ['dueDate', () => {
+
+            const shell = document.createElement('div');
+            shell.classList.add('filterOption');
+
             const dueDate = inputHelper('input', 'date', `${type}-due`, 'Due Date');
 
             const dateInput = dueDate.querySelector(`#${type}-due`);
@@ -205,6 +239,11 @@ form: (type) => {
             dateInput.min = localToday;
 
             if (type === 'filter') {
+                const toggle = propertyToggle(
+                    'enableFilter-dueDate',
+                    dueDate
+                );
+
                 const filterDirection = radioHelper(
                     `${type}-due`,
                     [
@@ -223,14 +262,22 @@ form: (type) => {
                     ]
                 )
 
+                shell.appendChild(toggle);
                 dueDate.appendChild(filterDirection);
+                shell.appendChild(dueDate);
             };
 
-            return dueDate;
+            if (type === 'filter') {
+                return shell
+            } else {
+                return dueDate
+            };
         }],
         ['priority', () => {
+            const shell = document.createElement('div');
+            shell.classList.add('filterOption');
+
             const priorities = ['low', 'medium', 'high'];
-            if (type === 'filter') priorities.unshift('N/A');
 
             const form = inputHelper('select', 'select', 
                 `${type}-priority`, 
@@ -240,20 +287,43 @@ form: (type) => {
 
             priorities.forEach(priority => {
                 const option = document.createElement('option');
-                option.value = priority === 'N/A' ? null : priority;
+                option.value = priority;
                 option.textContent = TextControls
                     .capitalizeEachWord(priority);
                 select.appendChild(option);
             })
 
-            return form;
+            if (type === 'filter') {
+                const toggle = propertyToggle(
+                    'enableFilter-priority',
+                    form
+                );
+
+                shell.appendChild(toggle);
+                shell.appendChild(form);
+                return shell;
+            } else {
+                return form;
+            }
         }],
         ['status', () => {
             if (type === 'task') return;
 
-            return inputHelper('input', 'checkbox', `${type}-status`,
+            const shell = document.createElement('div');
+            shell.classList.add('filterOption');
+
+            const status = inputHelper('input', 'checkbox', `${type}-status`,
                 'Completed?'
             );
+
+            const toggle = propertyToggle(
+                'enableFilter-status',
+                status
+            );
+
+            shell.appendChild(toggle);
+            shell.appendChild(status);
+            return shell;
         }],
         ['tags', () => {
             let tags = [];
@@ -285,9 +355,18 @@ form: (type) => {
                 return div;
             }
 
-            const shell = document.createElement('fieldset');
-            shell.classList.add(`tagContainer`);
-            shell.id = `${type}-tagContainer`;
+            const shell = document.createElement('div');
+
+            const subshell = document.createElement('fieldset');
+            if (type === 'filter') {
+                shell.classList.add('filterOption');
+                subshell.setAttribute('disabled', null);
+            };
+            subshell.classList.add(`tagContainer`);
+            subshell.id = `${type}-tagContainer`;
+
+            const label = document.createElement('label');
+            label.textContent = 'Tags';
 
             const input = document.createElement('input');
             input.id = `${type}-tags`;
@@ -299,16 +378,21 @@ form: (type) => {
                     if (value !== '' && !tags.includes(value)) {
                         const tag = createTag(value);
                         tags.push(value);
-                        shell.insertBefore(tag, input);
+                        subshell.insertBefore(tag, input);
                         input.value = '';
                     }
                     setTags();
                 }
             })
 
-            shell.appendChild(input);
+            subshell.appendChild(label);
+            subshell.appendChild(input);
 
             if (type === 'filter') {
+                const toggle = propertyToggle(
+                    'enableFilter-tags',
+                    subshell
+                )
                 const filterType = radioHelper(
                     `${type}-tags-filterType`,
                     [
@@ -336,9 +420,13 @@ form: (type) => {
                         }
                     ]
                 )
+                
+                shell.appendChild(toggle);
+                subshell.appendChild(filterType);
+                subshell.appendChild(filterScope);
+                shell.appendChild(subshell);
 
-                shell.appendChild(filterType);
-                shell.appendChild(filterScope);
+                return shell;
             }
 
             return shell;
@@ -422,6 +510,17 @@ form: (type) => {
                         keys.forEach(key => {
                             const identifier = `${type}-${key}`
                             const element = document.querySelector(`#${identifier}`);
+                            const propName = key === 'due' || key === 'created' ? `${key}Date` : key;
+                            const isEnabled = document.querySelector(`#enableFilter-${propName}`).checked;
+
+                            const isItDisabled = (key) => {
+                                if (!isEnabled) {
+                                    filterDetails[key] = null;
+                                    return true;
+                                };
+
+                                return false;
+                            }
 
                             if (element) {
                                 const filters = [];
@@ -443,15 +542,22 @@ form: (type) => {
                                             `input[name="${identifier}-radio"]:checked`)?.value);
                                 };
 
+                                // Set properties
                                 if (key === 'due' || key === 'created') {
-                                    
+
+                                    if (isItDisabled(`${key}Date`)) return;
+
                                     const [year, month, day] = element.value.split('-').map(Number);
+                                    filterDetails[`${key}Date`] = {}
                                     filterDetails[`${key}Date`].query = new Date(year, month - 1, day);
                                     filterDetails[`${key}Date`].type = filters[0];
 
                                 } else if (key === 'tags') {
 
+                                    if (isItDisabled(key)) return;
+
                                     const tags = JSON.parse(element.getAttribute(`${type}-tagList`));
+                                    filterDetails[key] = {}
                                     filterDetails[key].tagList = tags;
                                     filterDetails[key].type = filters[0];
                                     filterDetails[key].typeScope = filters[1];
@@ -462,10 +568,16 @@ form: (type) => {
                                     tagDivs.forEach(tag => tag.remove());
                                     
                                 } else if (key === 'priority') {
+                                    if (isItDisabled(key)) return;
+
                                     filterDetails[key] = element.value;
                                 } else if (key === 'status') {
+                                    if (isItDisabled(key)) return;
+
                                     filterDetails[key] = element.checked;
                                 } else {
+                                    if (isItDisabled(key)) return;
+                                    filterDetails[key] = {};
                                     filterDetails[key].query = element.value;
                                     filterDetails[key].type = filters[0];
                                 }
@@ -473,13 +585,12 @@ form: (type) => {
                         });
 
                         const listFiltered = new CustomEvent('list-filtered', {
-                            detail: { list: currentVisibleList, config: filterDetails }
+                            detail: { list: currentList, config: filterDetails }
                         });
                         document.dispatchEvent(listFiltered);
 
                         form.reset();
                     });
-
                 }
             })
 
