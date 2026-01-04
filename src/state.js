@@ -1,4 +1,4 @@
-const StateHandler = () => {
+export const StateHandler = () => {
     const appState = {
         sort: false,
         filter: false
