@@ -24,10 +24,19 @@ export const DisplayHandler = (data) => {
 
         ['controls', () => {
             const shell = document.createElement('div');
-            const controlList = ['new', 'stats', 'clear']
+            const controlList = ['new', 'filter', 'sort', 'stats', 'clear']
             const controlIcons = [
                 { // 'new'
                     d: 'M19,13H13V19H11V13H5V11H11V5H13V11H19V13Z',
+                    stroke: 'black'
+                },
+                { // filter
+                    d: 'M14,12V19.88C14.04,20.18 13.94,20.5 13.71,20.71C13.32,21.1 12.69,21.1 12.3,20.71L10.29,18.7C10.06,18.47 9.96,18.16 10,17.87V12H9.97L4.21,4.62C3.87,4.19 3.95,3.56 4.38,3.22C4.57,3.08 4.78,3 5,3V3H19V3C19.22,3 19.43,3.08 19.62,3.22C20.05,3.56 20.13,4.19 19.79,4.62L14.03,12H14Z',
+                    stroke: 'black'
+                },
+                {
+                    // sort
+                    d: 'M18 21L14 17H17V7H14L18 3L22 7H19V17H22M2 19V17H12V19M2 13V11H9V13M2 7V5H6V7H2Z',
                     stroke: 'black'
                 },
                 {
@@ -210,7 +219,10 @@ export const DisplayHandler = (data) => {
         shell.id = id;
         return shell;
     },
-    newTask: () => {
+    /** Generic form component
+     * @property {'new' | 'filter'} type
+     */
+    form: (type) => {
         const applyLabel = (id, labelText) => {
             const label = document.createElement('label');
             label.textContent = labelText;
@@ -240,24 +252,34 @@ export const DisplayHandler = (data) => {
             ['shell', () => {
                 const shell = document.createElement('form');
                 shell.id = 'form-newTask';
+
                 return shell;
             }],
             ['title', () => {
-                return inputHelper('input', 'text', 'task-title', 'Title');
+                return inputHelper('input', 'text', `${type}-title`, 'Title');
             }],
             ['description', () => {
-                return inputHelper('textarea', null, 'task-description', 'Description');
+                return inputHelper('textarea', null, `${type}-description`, 'Description');
             }],
             ['dueDate', () => {
-                return inputHelper('input', 'date', 'task-due', 'Due Date');
+                const shell = inputHelper('input', 'date', `${type}-due`, 'Due Date');
+
+                const dateInput = shell.querySelector(`#${type}-due`);
+                console.log(dateInput);
+
+                const today = new Date().toISOString().split('T')[0];
+                dateInput.value = today;
+                dateInput.min = today;
+
+                return shell;
             }],
             ['priority', () => {
                 const priorities = ['low', 'medium', 'high'];
                 const form = inputHelper('select', 'select', 
-                    'task-priority', 
+                    `${type}-priority`, 
                     'Priority Level');
                 
-                const select = form.querySelector('#task-priority');
+                const select = form.querySelector(`#${type}-priority`);
 
                 priorities.forEach(priority => {
                     const option = document.createElement('option');
@@ -269,10 +291,65 @@ export const DisplayHandler = (data) => {
 
                 return form;
             }],
+            ['tags', () => {
+                let tags = [];
+
+                const setTags = () => {
+                    let tagArray = JSON.stringify(tags);
+                    input.setAttribute(`${type}-tagList`, tagArray);
+                }
+
+                const createTag = (label) => {
+                    const div = document.createElement('div');
+                    div.classList.add('tag');
+
+                    const span = document.createElement('span');
+                    span.innerHTML = label;
+
+                    const remove = document.createElement('span');
+                    remove.classList.add('tag-close');
+                    remove.textContent = '×';
+
+                    remove.addEventListener('click', () => {
+                        div.remove();
+                        tags = tags.filter(tag => tag !== label);
+                        setTags();
+                    });
+
+                    div.appendChild(span);
+                    div.appendChild(remove);
+                    return div;
+                }
+
+                const shell = document.createElement('div');
+                shell.classList.add(`tagContainer`);
+                shell.id = `${type}-tagContainer`;
+
+                const input = document.createElement('input');
+                input.id = `${type}-tags`;
+                input.setAttribute('placeholder', 'Input tags...');
+
+                input.addEventListener('keyup', (e) => {
+                    if (e.key === 'Enter') {
+                        const value = input.value.trim();
+                        if (value !== '' && !tags.includes(value)) {
+                            const tag = createTag(value);
+                            tags.push(value);
+                            shell.insertBefore(tag, input);
+                            input.value = '';
+                        }
+                        setTags();
+                    }
+                })
+
+                shell.appendChild(input);
+
+                return shell;
+            }],
             ['submit', () => {
                 const shell = document.createElement('div');
                 const submit = document.createElement('button');
-                submit.setAttribute('type', 'submit')
+                submit.setAttribute('type', 'button')
                 submit.textContent = 'submit';
 
                 shell.appendChild(submit);
@@ -280,18 +357,26 @@ export const DisplayHandler = (data) => {
                 setTimeout(() => {
                     const form = submit.closest('form');
                     if (form) {
-                        form.addEventListener('submit', (event) => {
+                        submit.addEventListener('click', (event) => {
                             event.preventDefault();
                             
-                            const keys = ['title', 'description', 'due', 'priority', 'notes'];
+                            const keys = ['title', 'description', 'due', 'priority', 'tags'];
                             const taskDetails = {};
                             
                             keys.forEach(key => {
-                                const element = document.querySelector(`#task-${key}`);
+                                const element = document.querySelector(`#${type}-${key}`);
                                 if (element) {
                                     if (key === 'due') {
                                         const [year, month, day] = element.value.split('-').map(Number);
                                         taskDetails.dueDate = new Date(year, month - 1, day);
+                                    } else if (key === 'tags') {
+                                        const tags = JSON.parse(element.getAttribute(`${type}-tagList`));
+                                        taskDetails.tags = tags;
+
+                                        const tagDivs = document.querySelectorAll(
+                                            `#${type}-tagContainer > .tag`);
+                                        tagDivs.forEach(tag => tag.remove());
+                                        
                                     } else {
                                         taskDetails[key] = element.value;
                                     }
@@ -299,7 +384,6 @@ export const DisplayHandler = (data) => {
                             });
 
                             taskDetails.subtasks = [];
-                            taskDetails.tags = [];
 
                             const tasksAdded = new CustomEvent('task-added', {
                                 detail: taskDetails
@@ -332,7 +416,7 @@ export const DisplayHandler = (data) => {
     documentBody.appendChild(assembleParts(sections, 'container'));
     
     documentBody.appendChild(components.popover(
-        components.newTask(), 'createNewTask'));
+        components.form('task'), 'createNewTask'));
 
     document.addEventListener('tasks-updated', () => {
         console.log("Tasks updated! Re-rendering list...");
