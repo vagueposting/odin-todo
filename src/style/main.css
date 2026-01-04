@@ -108,6 +108,10 @@ body {
     anchor-name: --new-button-anchor;
 }
 
+.controls button:nth-child(2) {
+    anchor-name: --filter-button-anchor;
+}
+
 .todoGroup {
     grid-column: 2 / 3;
     grid-row: 1 / 3;
@@ -222,7 +226,7 @@ body {
     transition: color 0.5s ease-in, text-decoration-color 0.75s ease-in;
 }
 
-.more-details a:hover, .tag {
+.more-details a:hover {
     color: #244da5;
     text-decoration-color: inherit;
     text-decoration: underline dotted;
@@ -295,6 +299,16 @@ body {
 
 [popover]#createNewTask label {
     font-weight: bold;
+}
+
+[popover]#filterTasks {
+    margin: 0;
+    position-anchor: --filter-button-anchor;
+
+    top: anchor(top);
+    left: anchor(right);
+
+    margin-left: 1rem;
 }
 
 .tag-container {

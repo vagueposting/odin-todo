@@ -326,8 +326,14 @@ export const DataHandler = () => {
 
     // Add a task when this is heard.
     document.addEventListener('task-added', function(e) {
+        if (e.detail.title === '') {
+            return;
+        };
+
         addTask(e.detail);
     })
+
+    document.addEventListener('clear-list', clearList());
 
     // Save whenever list is updated
     document.addEventListener('tasks-updated', saveToStorage);
