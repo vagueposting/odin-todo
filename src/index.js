@@ -9,6 +9,5 @@ import './style/checkbox.css';
 
 
 const data = DataHandler();
-// data.clearList();
 
 DisplayHandler(data); 

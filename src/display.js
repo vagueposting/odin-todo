@@ -50,7 +50,7 @@ export const DisplayHandler = (data) => {
                     stroke: 'black'
                 }
             ]
-            const applyTarget = (button, divID) => {
+            const applyPopoverTarget = (button, divID) => {
                 button.setAttribute('popovertarget', divID);
                 button.setAttribute('popovertargetaction', 'show');
             }
@@ -68,7 +68,16 @@ export const DisplayHandler = (data) => {
 
                 switch (i) {
                     case 0: // new
-                        applyTarget(buttonShell, 'createNewTask');
+                        applyPopoverTarget(buttonShell, 'createNewTask');
+                        break;
+                    case 1: // filter
+                        applyPopoverTarget(buttonShell, 'filterTasks')
+                    case 4: // clear
+                        // TODO: add a popover here.
+                        const clear = new CustomEvent('clear-list')
+                        buttonShell.addEventListener('click', () => { 
+                            buttonShell.dispatchEvent(clear)
+                        });
                         break;
                     default:
                         break;
@@ -230,6 +239,10 @@ export const DisplayHandler = (data) => {
             return label;
         }
 
+        const radioHelper = (element, options) => {
+            
+        }
+
         const inputHelper = (e, type, id, labelText) => {
             const shell = document.createElement('div');
             const divClass = e === 'textarea' ? 'longTextInput' : 'standardInput';
@@ -239,7 +252,7 @@ export const DisplayHandler = (data) => {
 
             const input = document.createElement(e);
             if (e !== 'textarea') input.setAttribute('type', type);
-            input.setAttribute('name', id);
+            input.name = id;
             input.id = id;
 
             shell.appendChild(label); 
@@ -259,6 +272,7 @@ export const DisplayHandler = (data) => {
                 return inputHelper('input', 'text', `${type}-title`, 'Title');
             }],
             ['description', () => {
+                if (type === 'filter') return;
                 return inputHelper('textarea', null, `${type}-description`, 'Description');
             }],
             ['dueDate', () => {
@@ -267,9 +281,10 @@ export const DisplayHandler = (data) => {
                 const dateInput = shell.querySelector(`#${type}-due`);
                 console.log(dateInput);
 
-                const today = new Date().toISOString().split('T')[0];
-                dateInput.value = today;
-                dateInput.min = today;
+                const localToday = getLocalDateToday();
+                dateInput.defaultValue = localToday; 
+                dateInput.value = localToday;
+                dateInput.min = localToday;
 
                 return shell;
             }],
@@ -346,7 +361,9 @@ export const DisplayHandler = (data) => {
 
                 return shell;
             }],
-            ['submit', () => {
+            ['submit-task', () => {
+                if (type === 'filter') return;
+
                 const shell = document.createElement('div');
                 const submit = document.createElement('button');
                 submit.setAttribute('type', 'button')
@@ -373,6 +390,7 @@ export const DisplayHandler = (data) => {
                                         const tags = JSON.parse(element.getAttribute(`${type}-tagList`));
                                         taskDetails.tags = tags;
 
+                                        // Reset this part of the form
                                         const tagDivs = document.querySelectorAll(
                                             `#${type}-tagContainer > .tag`);
                                         tagDivs.forEach(tag => tag.remove());
@@ -396,6 +414,18 @@ export const DisplayHandler = (data) => {
                 }, 0);
 
                 return shell;
+            }],
+            ['submit-filter', () => {
+                if (type === 'task') return;
+
+                const shell = document.createElement('div');
+                const submit = document.createElement('button');
+                submit.setAttribute('type', 'button')
+                submit.textContent = 'submit';
+
+                shell.appendChild(submit);
+
+                return shell;
             }]
         ])
 
@@ -417,6 +447,9 @@ export const DisplayHandler = (data) => {
     
     documentBody.appendChild(components.popover(
         components.form('task'), 'createNewTask'));
+
+    documentBody.appendChild(components.popover(
+        components.form('filter'), 'filterTasks'));
 
     document.addEventListener('tasks-updated', () => {
         console.log("Tasks updated! Re-rendering list...");
@@ -451,3 +484,12 @@ const createSVGElement = (type, attributes) => {
 
     return el;
 };
+
+const getLocalDateToday = () => {
+    const now = new Date();
+    const year = now.getFullYear();
+    const month = String(now.getMonth() + 1).padStart(2, '0'); // Months are 0-indexed
+    const day = String(now.getDate()).padStart(2, '0');
+
+    return `${year}-${month}-${day}`;
+}
