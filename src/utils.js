@@ -16,3 +16,99 @@ export const TextControls = {
         return capitalizedWords.join(' ');
     }
 }
+
+export const assembleParts = (parts, baseName) => {
+    const base = parts.get(baseName)();
+
+    for (const [part, assemble] of parts) {
+        if (part === baseName) {
+            continue;
+        }
+        
+        const element = assemble();
+
+        if (element) {
+            base.appendChild(element);
+        };
+    };
+
+    return base;
+}
+
+export const createSVGElement = (type, attributes) => {
+    const el = document.createElementNS('http://www.w3.org/2000/svg', type);
+
+    for (let key in attributes) {
+        el.setAttribute(key, attributes[key]);
+    };
+
+    return el;
+};
+
+export const getLocalDateToday = () => {
+    const now = new Date();
+    const year = now.getFullYear();
+    const month = String(now.getMonth() + 1).padStart(2, '0'); // Months are 0-indexed
+    const day = String(now.getDate()).padStart(2, '0');
+
+    return `${year}-${month}-${day}`;
+}
+
+export const applyLabel = (id, labelText) => {
+    const label = document.createElement('label');
+    label.textContent = labelText;
+    label.setAttribute('for', id);
+    return label;
+}
+
+/**
+ * Returns a div with a collecetion of radio input elements
+ * @param {string} mainID - ID of specific property being queried  
+ * @param {Array<Object>} options 
+ *  @property {string} dir
+ *  @property {string} label
+ */
+export const radioHelper = (mainID, options) => {
+    const shell = document.createElement('fieldset')
+    shell.classList.add('radio');
+
+    options.forEach(o => {
+        const opt = document.createElement('div');
+        const radio = document.createElement('input');
+        const label = document.createElement('label');
+
+        radio.type = 'radio';
+        radio.name = `${mainID}-radio`;
+        radio.id = `${mainID}-${o.dir}`
+        radio.value = o.dir;
+        if (o === options[0]) radio.setAttribute('checked', null);
+
+        label.textContent = o.label;
+        label.setAttribute('for', radio.id);
+
+        opt.appendChild(radio);
+        opt.appendChild(label);
+
+        shell.appendChild(opt);
+    });
+
+    return shell;
+}
+
+export const inputHelper = (e, inputType, id, labelText) => {
+    const shell = document.createElement('fieldset');
+    const divClass = e === 'textarea' ? 'longTextInput' : 'standardInput';
+    shell.classList.add(divClass);
+
+    const label = applyLabel(id, labelText)
+
+    const input = document.createElement(e);
+    if (e !== 'textarea') input.setAttribute('type', inputType);
+    input.name = id;
+    input.id = id;
+
+    shell.appendChild(label); 
+    shell.appendChild(input);
+
+    return shell;
+};
