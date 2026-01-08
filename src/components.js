@@ -21,7 +21,14 @@ todo: (task) => {
             checkbox.setAttribute('type', 'checkbox');
             checkbox.id = `checkbox-${task.id}`;
             checkbox.checked = task.status;
-            
+            checkbox.addEventListener('change', function(e) {
+                const changeStatus = new CustomEvent('toggle-task', 
+                    { detail: task.id }
+                );
+
+                document.dispatchEvent(changeStatus);
+            });
+
             const checkBoxLabel = document.createElement('label');
             checkBoxLabel.classList.add('check-box');
             checkBoxLabel.setAttribute('for', `checkbox-${task.id}`);
@@ -429,7 +436,7 @@ form: (type, currentList) => {
                 return shell;
             }
 
-            return shell;
+            return subshell;
         }],
         ['submit-task', () => {
             if (type === 'filter') return;
@@ -459,7 +466,7 @@ form: (type, currentList) => {
                                     taskDetails.dueDate = new Date(year, month - 1, day);
                                 } else if (key === 'tags') {
                                     const tags = JSON.parse(element.getAttribute(`${type}-tagList`));
-                                    taskDetails.tags = tags;
+                                    taskDetails.tags = tags ? tags : [];
 
                                     // Reset this part of the form
                                     const tagDivs = document.querySelectorAll(
