@@ -348,6 +348,12 @@ export const DataHandler = (state) => {
         }));
     });
 
+    document.addEventListener('toggle-task', function (e) {
+        const target = ToDoList.find(task => task.id === e.detail);
+
+        if (target) target.toggle();
+    });
+
     document.addEventListener('clear-list', clearList);
 
     // Save whenever list is updated
@@ -359,7 +365,7 @@ export const DataHandler = (state) => {
     return { // addTask, 
         removeTask,
         viewList,
-        sortList // ,
+        // sortList ,
         // filterList,
         // clearList
     };
