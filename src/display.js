@@ -60,6 +60,7 @@ export const DisplayHandler = (data, state) => {
             shell.classList.add('controls');
 
             for (let i = 0; i < controlList.length; i++) {
+                if (i === 3) continue;
                 const buttonShell = document.createElement('button');
                 const svg = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
                 const icon = createSVGElement('path', controlIcons[i]);
@@ -73,13 +74,13 @@ export const DisplayHandler = (data, state) => {
                         applyPopoverTarget(buttonShell, 'createNewTask');
                         break;
                     case 1: // filter
-                        applyPopoverTarget(buttonShell, 'filterTasks')
+                        applyPopoverTarget(buttonShell, 'filterTasks');
+                        break;
+                    case 2: // sort
+                        applyPopoverTarget(buttonShell, 'sortTasks');
+                        break;
                     case 4: // clear
-                        // TODO: add a popover here.
-                        const clear = new CustomEvent('clear-list')
-                        buttonShell.addEventListener('click', () => { 
-                            buttonShell.dispatchEvent(clear)
-                        });
+                        applyPopoverTarget(buttonShell, 'confirmClear')
                         break;
                     default:
                         break;
@@ -127,11 +128,18 @@ export const DisplayHandler = (data, state) => {
     documentBody.appendChild(components.popover(
         components.form('filter', currentVisibleList), 'filterTasks'));
 
+    documentBody.appendChild(components.popover(
+        components.sort(currentVisibleList), 'sortTasks'));
+
+    documentBody.appendChild(components.popover(
+        components.clear(), 'confirmClear'));
+
     document.addEventListener('tasks-updated', () => {
         refreshList();
     });
 
-    document.addEventListener('render-filtered-list', (e) => {
+    document.addEventListener('request-render', (e) => {
         refreshList(e.detail);
     })
+
 }

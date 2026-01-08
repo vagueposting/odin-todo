@@ -306,6 +306,8 @@ export const DataHandler = (state) => {
 
             return direction === 'ASC' ? comparison : -comparison;
         });
+
+        return itemsToSort;
     };
 
     const clearList = () => {
@@ -331,10 +333,18 @@ export const DataHandler = (state) => {
         const { list, config } = e.detail;
         const filteredResult = filterList(list, config);
 
-        console.dir(config);
-
-        document.dispatchEvent(new CustomEvent('render-filtered-list', {
+        document.dispatchEvent(new CustomEvent('request-render', {
             detail: filteredResult
+        }));
+    });
+
+    document.addEventListener('list-sorted', function (e) {
+        const { list, sortBy, direction } = e.detail;
+
+        const sortedList = sortList(list, sortBy, direction);
+
+        document.dispatchEvent(new CustomEvent('request-render', {
+            detail: sortedList
         }));
     });
 
