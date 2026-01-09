@@ -26,7 +26,7 @@ export const DisplayHandler = (data, state) => {
 
         ['controls', () => {
             const shell = document.createElement('div');
-            const controlList = ['new', 'filter', 'sort', 'stats', 'clear']
+            const controlList = ['new', 'filter', 'sort', 'refresh', 'clear']
             const controlIcons = [
                 { // 'new'
                     d: 'M19,13H13V19H11V13H5V11H11V5H13V11H19V13Z',
@@ -41,17 +41,17 @@ export const DisplayHandler = (data, state) => {
                     d: 'M18 21L14 17H17V7H14L18 3L22 7H19V17H22M2 19V17H12V19M2 13V11H9V13M2 7V5H6V7H2Z',
                     stroke: 'black'
                 },
-                {
-                    // stats
-                    d: 'M22,21H2V3H4V19H6V10H10V19H12V6H16V19H18V14H22V21Z',
+                { // refresh 
+                    d: 'M17.65,6.35C16.2,4.9 14.21,4 12,4A8,8 0 0,0 4,12A8,8 0 0,0 12,20C15.73,20 18.84,17.45 19.73,14H17.65C16.83,16.33 14.61,18 12,18A6,6 0 0,1 6,12A6,6 0 0,1 12,6C13.66,6 15.14,6.69 16.22,7.78L13,11H20V4L17.65,6.35Z',
                     stroke: 'black'
                 },
                 {
                     // clear
-                    d: 'M19,6.41L17.59,5L12,10.59L6.41,5L5,6.41L10.59,12L5,17.59L6.41,19L12,13.41L17.59,19L19,17.59L13.41,12L19,6.41Z',
+                    d: 'M21.03,3L18,20.31C17.83,21.27 17,22 16,22H8C7,22 6.17,21.27 6,20.31L2.97,3H21.03M5.36,5L8,20H16L18.64,5H5.36M9,18V14H13V18H9M13,13.18L9.82,10L13,6.82L16.18,10L13,13.18Z',
                     stroke: 'black'
                 }
             ]
+
             const applyPopoverTarget = (button, divID) => {
                 button.setAttribute('popovertarget', divID);
                 button.setAttribute('popovertargetaction', 'show');
@@ -60,7 +60,6 @@ export const DisplayHandler = (data, state) => {
             shell.classList.add('controls');
 
             for (let i = 0; i < controlList.length; i++) {
-                if (i === 3) continue;
                 const buttonShell = document.createElement('button');
                 const svg = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
                 const icon = createSVGElement('path', controlIcons[i]);
@@ -78,6 +77,11 @@ export const DisplayHandler = (data, state) => {
                         break;
                     case 2: // sort
                         applyPopoverTarget(buttonShell, 'sortTasks');
+                        break;
+                    case 3: // refresh
+                        buttonShell.addEventListener('click', function(e) {
+                            refreshList();
+                        });
                         break;
                     case 4: // clear
                         applyPopoverTarget(buttonShell, 'confirmClear')
