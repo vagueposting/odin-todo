@@ -665,10 +665,17 @@ form: (type, currentList) => {
                 return shell;
             }],
             ['submit', () => {
+                const button = document.createElement('button');
+                button.type = 'button';
+                button.textContent = 'submit';
+
+                button.addEventListener('click', function(e) {
+                    e.preventDefault();
+
                 const sortDirection = document.querySelector(
-                    'input[name="sortDirection-radio"]')?.value;
+                    'input[name="sortDirection-radio"]:checked')?.value;
                 const sortOption = document.querySelector(
-                    'input[name="sortOptions-radio"]')?.value;
+                    'input[name="sortOptions-radio"]:checked')?.value;
 
                 const sortEvent = new CustomEvent('list-sorted', {
                     detail: {
@@ -677,13 +684,6 @@ form: (type, currentList) => {
                         direction: sortDirection
                     }
                 })
-
-                const button = document.createElement('button');
-                button.type = 'button';
-                button.textContent = 'submit';
-
-                button.addEventListener('click', function(e) {
-                    e.preventDefault();
 
                     document.dispatchEvent(sortEvent);
                 })
@@ -698,7 +698,7 @@ form: (type, currentList) => {
         const clearConfirm = new Map([
             ['shell', () => {
                 const shell = document.createElement('div');
-                shell.classList.add('confirmClear');
+                shell.classList.add('generic');
                 return shell;
             }],
             ['message', () => {
