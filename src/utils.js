@@ -125,3 +125,40 @@ export const propertyToggle = (id, targetFieldset) => {
 
     return checkbox;
 }
+
+
+export class Button {
+    constructor(buttonName, targetDiv = null) {
+        this.button = document.createElement('button');
+        this.button.textContent = buttonName;
+
+        if (targetDiv) {
+            this.button.setAttribute('popovertarget', targetDiv);
+            this.button.setAttribute('popovertargetaction', 'show');
+        }
+    }
+
+    onClick(callback) {
+        this.button.addEventListener('click', callback);
+        return this;
+    }
+
+    render() {
+        return this.button;
+    }
+}
+
+export class IconButton extends Button {
+    constructor(buttonName, targetDiv, pathData) {
+        super(buttonName, targetDiv);
+        this.button.textContent = '';
+
+        const svg = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
+        svg.setAttribute('viewBox', '0 0 24 24');
+        svg.classList.add('control-icon');
+        const icon = createSVGElement('path', pathData);
+
+        svg.appendChild(icon);
+        this.button.appendChild(svg);
+    }
+}
