@@ -75,7 +75,11 @@ export const DisplayHandler = (data, state) => {
             shell.classList.add('todoGroup');
 
             currentVisibleList.forEach((task) => {
-                shell.appendChild(components.todo(task));
+                const { popover, todo } = components;
+                const expanded = popover(todo(task, true), `expand-${task.id}`);
+                expanded.classList.add('expanded');
+                shell.appendChild(expanded);
+                shell.appendChild(todo(task));
             })
 
             return shell;

@@ -1,7 +1,7 @@
 import { format, isBefore } from 'date-fns';
 import { getLocalDateToday, inputHelper, 
     radioHelper, assembleParts, TextControls,
-    propertyToggle, applyPopoverTarget } from "./utils.js";
+    propertyToggle, Button } from "./utils.js";
 
 export const components = {
 
@@ -10,7 +10,10 @@ todo: (task, expanded = false) => {
         ['base', () => {
             const shell = document.createElement('div');
             shell.classList.add('todo');
-            shell.id = !expanded ? task.id : `expand-${task.id}`;
+            shell.id = !expanded ? task.id : '';
+
+            if (shell.id === `expand-${task.id}`) shell.classList.add('expanded')
+            
             return shell;
         }],
         ['title', () => {
@@ -55,7 +58,6 @@ todo: (task, expanded = false) => {
         ['due-date', () => {
             const { dueDate } = task
             const shell = document.createElement('span');
-            shell.textContent = format(dueDate, 'dd MMMM, yyyy');
             shell.classList.add('due-date');
 
             if (!dueDate) {
@@ -79,7 +81,7 @@ todo: (task, expanded = false) => {
             return shell;
         }],
 
-        ['subtask-list', () => {
+        ['subtask-count', () => {
             if (expanded) return;
             const shell = document.createElement('span');
             shell.classList.add('subtasks')
@@ -94,7 +96,83 @@ todo: (task, expanded = false) => {
 
             return shell;
         }],
+        ['subtask-list', () => {
+            if (!expanded) return;
 
+            const { subtasks } = task;
+
+            if (subtasks.length <= 0) return;
+
+            const container = document.createElement('div');
+
+            const printSubtask = (subtask) => { 
+                const parts = new Map([
+                    ['shell', () => {
+                        const shell = document.createElement('div');
+                        shell.classList.add('subtask');
+                        return shell;
+                    }],
+                    ['title', () => {
+                        const header = document.createElement('h2');
+                        header.textContent = subtask.title;
+                        return header;
+                    }],
+                    ['due-date', () => {
+                        const { dueDate } = subtask;
+                        const dateText = document.createElement('span');
+                        dateText.classList.add('due');
+                        
+                        if (!dueDate) {
+                            dateText.textContent = 'No date set';
+                            return dateText;
+                        }
+
+                        const dateObj = new Date(dueDate);
+
+                        if (isNaN(dateObj.getTime())) {
+                            dateText.textContent = 'Invalid Date';
+                            return dateText;
+                        }
+
+                        dateText.textContent = format(dateObj,
+                            'dd MMMM, yyyy'
+                        );
+
+                        if (!isBefore(new Date(), dateObj)) {
+                            dateText.classList.add('urgent');
+                        }
+
+                        return dateText;
+                    }],
+                    ['description', () => {
+                        const descrip = document.createElement('p');
+                        descrip.textContent = subtask.description;
+                        return descrip;
+                    }],
+                    ['tags', () => {
+                        const { tags } = subtask;
+                        const shell = document.createElement('div');
+                        shell.classList.add('tagList');
+
+                        if (tags) {
+                            tags.forEach((t) => {
+                                const tagElement = document.createElement('span');
+                                tagElement.textContent = t;
+                                shell.appendChild(tagElement);
+                            });
+                        };
+
+                        return shell;
+                    }]
+                ]);
+                
+                return assembleParts(parts);
+            }
+
+            subtasks.forEach(subtask => container.appendChild(
+                printSubtask(subtask)));
+
+        }],
         ['tags', () => {
             const { tags } = task;
             const shell = document.createElement('div');
@@ -114,12 +192,12 @@ todo: (task, expanded = false) => {
         ['more', () => {
             if (expanded) return;
             const shell = document.createElement('span');
-            const link = document.createElement('a');
-            link.textContent = 'more info...';
+            // TODO: create the "expanded view"
+            const link = new Button('more info...', `expand-${task.id}`)
 
             shell.classList.add('more-details');
 
-            shell.appendChild(link);
+            shell.appendChild(link.render());
             
             return shell;
         }]
