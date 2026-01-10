@@ -1,16 +1,16 @@
 import { format, isBefore } from 'date-fns';
 import { getLocalDateToday, inputHelper, 
     radioHelper, assembleParts, TextControls,
-    propertyToggle } from "./utils.js";
+    propertyToggle, applyPopoverTarget } from "./utils.js";
 
 export const components = {
 
-todo: (task) => {
+todo: (task, expanded = false) => {
     const parts = new Map([
         ['base', () => {
             const shell = document.createElement('div');
             shell.classList.add('todo');
-            shell.id = task.id;
+            shell.id = !expanded ? task.id : `expand-${task.id}`;
             return shell;
         }],
         ['title', () => {
@@ -79,7 +79,8 @@ todo: (task) => {
             return shell;
         }],
 
-        ['subtasks', () => {
+        ['subtask-list', () => {
+            if (expanded) return;
             const shell = document.createElement('span');
             shell.classList.add('subtasks')
             
@@ -111,6 +112,7 @@ todo: (task) => {
         }],
 
         ['more', () => {
+            if (expanded) return;
             const shell = document.createElement('span');
             const link = document.createElement('a');
             link.textContent = 'more info...';
