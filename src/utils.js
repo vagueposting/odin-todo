@@ -17,7 +17,7 @@ export const TextControls = {
     }
 }
 
-export const assembleParts = (parts, baseName) => {
+export const assembleParts = (parts, baseName = 'shell') => {
     const base = parts.get(baseName)();
 
     for (const [part, assemble] of parts) {

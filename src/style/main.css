@@ -61,7 +61,7 @@ body {
     align-items: center;
 }
 
-.controls button, .todo, 
+.controls button, .todo:not(.expanded .todo), 
 .tagList span {
     /* From https://css.glass */
     background: rgba(255, 255, 255, 0.40);
@@ -126,7 +126,7 @@ body {
 
     padding: 1.5rem 3rem;
 }
-.todo {
+.todo:not(.expanded .todo) {
     padding: 1rem;
 
     min-height: 40%;
@@ -138,6 +138,29 @@ body {
     display: grid;
     grid-template-columns: 0.50fr repeat(2, 1fr) 1fr;
     grid-template-rows: 1.5fr repeat(3, 1fr);
+    justify-content: center;
+    align-items: center;
+    gap: 10px;
+}
+
+.expanded {
+    position: fixed;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+}
+
+.expanded::backdrop {
+    background-color: rgba(255, 255, 255, 0.3);
+    backdrop-filter: blur(10px) brightness(1.05);
+}
+
+.expanded .todo {
+    padding: 0;
+
+    display: grid;
+    grid-template-columns: 0.50fr repeat(2, 1fr) 1fr;
+    grid-template-rows: 1.5fr repeat(3, 1fr) 3fr;
     justify-content: center;
     align-items: center;
     gap: 10px;
@@ -203,6 +226,11 @@ body {
     border-radius: 16px;
 }
 
+.expanded .tagList {
+    background: var(--main-gradient);
+    background-size: 200%;
+}
+
 .tagList span {
     padding: 0.10rem 0.20rem;
     user-select: none;
@@ -217,7 +245,11 @@ body {
     justify-content: right;
 }
 
-.more-details a {
+.more-details button {
+    border: none;
+    outline: none;
+    background: none;
+
     cursor: pointer;
     font-size: 1rem;
     font-weight: bold;
@@ -226,7 +258,7 @@ body {
     transition: color 0.5s ease-in, text-decoration-color 0.75s ease-in;
 }
 
-.more-details a:hover {
+.more-details button:hover {
     color: #244da5;
     text-decoration-color: inherit;
     text-decoration: underline dotted;
