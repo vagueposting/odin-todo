@@ -130,6 +130,11 @@ export const DataHandler = (state) => {
 
     /* ======== END OF MAIN INIT =========== */
 
+    const findTaskIndexByID = (id, list) => {
+        return list.findIndex((task) => task.id === id);
+    }
+    
+
     const addTask = (config) => {
         const newTask = new ToDo(config);
         ToDoList.push(newTask);
@@ -137,7 +142,8 @@ export const DataHandler = (state) => {
     };
 
     const removeTask = (id) => {
-        const taskToRemove = ToDoList.findIndex((task) => task.id === id);
+        
+        const taskToRemove = findTaskIndexByID(id, ToDoList);
 
         if (taskToRemove !== -1) ToDoList.splice(taskToRemove, 1);
         commonUpdateEvent();
@@ -327,6 +333,49 @@ export const DataHandler = (state) => {
         };
 
         addTask(e.detail);
+    })
+
+    document.addEventListener('task-removed', function (e) {
+        const { id } = e.detail;
+
+        if (id) removeTask(id);
+    })
+
+    document.addEventListener('subtask-added', function (e) {
+        const { id, config } = e.detail;
+
+        const targetTask = ToDoList[findTaskIndexByID(id)];
+
+        targetTask.addSubtask(config);
+    });
+
+    document.addEventListener('subtask-removed', function(e) {
+        const { taskID, subtaskID } = e.detail;
+
+        const targetTask = ToDoList[findTaskIndexByID(ToDoList, taskID)];
+
+        targetTask.removeSubtask(subtaskID);
+    })
+
+    document.addEventListener('task-edited', function(e) {
+        // This can touch both tasks and subtasks.
+        // if it's a subtask, the detail should have a parentTask to consult
+        // else, null.
+        const { taskConfig, parentTask, property, change } = e.detail;
+        
+        if (taskConfig.__isSubtask) {
+            // reach into the subtask based on the parentTask
+            const target = findTaskIndexByID(
+                taskConfig.id,
+                parentTask.subtasks);
+            
+            if (target !== -1) {
+                parentTask.subtasks[target].edit(property, change);
+            };
+        } else {
+            // just grab it from the 'top' list
+            taskConfig.edit(property, change);
+        }
     })
 
     document.addEventListener('list-filtered', function(e) {
