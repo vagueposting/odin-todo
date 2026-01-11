@@ -98,6 +98,7 @@ export const DisplayHandler = (data, state) => {
             currentVisibleList = data.viewList();
         };
         container.appendChild(sections.get('todos')());
+        document.dispatchEvent(new CustomEvent('view-reset'));
     };
 
     documentBody.appendChild(assembleParts(sections, 'container'));

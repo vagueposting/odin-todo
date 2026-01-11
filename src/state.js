@@ -1,4 +1,4 @@
-export const StateHandler = (data) => {
+export const StateHandler = () => {
     const appState = {
         sort: false,
         filter: false
@@ -8,7 +8,7 @@ export const StateHandler = (data) => {
         appState.filter = true;
     });
 
-    document.addEventListener('list-filtered', () => {
+    document.addEventListener('list-sorted', () => {
         appState.sort = true;
     });
 

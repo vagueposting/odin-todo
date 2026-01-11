@@ -357,26 +357,23 @@ export const DataHandler = (state) => {
         targetTask.removeSubtask(subtaskID);
     })
 
-    document.addEventListener('task-edited', function(e) {
-        // This can touch both tasks and subtasks.
-        // if it's a subtask, the detail should have a parentTask to consult
-        // else, null.
-        const { taskConfig, parentTask, property, change } = e.detail;
-        
-        if (taskConfig.__isSubtask) {
-            // reach into the subtask based on the parentTask
-            const target = findTaskIndexByID(
-                taskConfig.id,
-                parentTask.subtasks);
-            
-            if (target !== -1) {
-                parentTask.subtasks[target].edit(property, change);
-            };
-        } else {
-            // just grab it from the 'top' list
-            taskConfig.edit(property, change);
-        }
-    })
+document.addEventListener('task-edited', function(e) {
+    const { taskConfig, parentTask, alterations } = e.detail;
+
+    let target;
+    if (taskConfig.__isSubtask) {
+        const index = findTaskIndexByID(taskConfig.id, parentTask.subtasks);
+        target = parentTask.subtasks[index];
+    } else {
+        target = taskConfig; 
+    }
+
+    if (target && Array.isArray(alterations)) {
+        alterations.forEach(({ property, change }) => {
+            target.edit(property, change);
+        });
+    }
+});
 
     document.addEventListener('list-filtered', function(e) {
         const { list, config } = e.detail;
