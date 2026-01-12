@@ -96,6 +96,16 @@ todo: (task, expanded = false) => {
 
             return shell;
         }],
+        ['create-subtask', () => {
+            if (!expanded) return;
+
+            const shell = document.createElement('div');
+            const button = new Button('Create subtask', 'newSubtask')
+
+            shell.appendChild(button);
+
+            return shell;
+        }],
         ['subtask-list', () => {
             if (!expanded) return;
 
@@ -172,6 +182,7 @@ todo: (task, expanded = false) => {
             subtasks.forEach(subtask => container.appendChild(
                 printSubtask(subtask)));
 
+            return container;
         }],
         ['tags', () => {
             const { tags } = task;
@@ -218,13 +229,13 @@ popover: (contents, id) => {
 },
 
 /** Generic form component
- * @property {'new' | 'filter'} type
+ * @property {'task' | 'subtask' | 'filter'} type
  */
 form: (type, currentList) => {
     const form = new Map([
         ['shell', () => {
             const shell = document.createElement('form');
-            shell.id = 'form-newTask';
+            shell.id = `form-${type}`;
 
             return shell;
         }],

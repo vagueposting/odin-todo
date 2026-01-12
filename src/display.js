@@ -101,19 +101,37 @@ export const DisplayHandler = (data, state) => {
         document.dispatchEvent(new CustomEvent('view-reset'));
     };
 
+    const createPopovers = () => {
+        const { form, sort, popover, clear } = components;
+        const popoverConfigs = [
+            {
+                id: 'createNewTask',
+                content: form('task', currentVisibleList)
+            },
+            {
+                id: 'filterTasks',
+                content: form('filter', currentVisibleList)
+            },
+            {
+                id: 'sortTasks',
+                content: sort(currentVisibleList)
+            },
+            {
+                id: 'confirmClear',
+                content: clear()
+            }
+        ]
+
+        popoverConfigs.forEach((config) => {
+            const { content, id } = config;
+
+            documentBody.appendChild(popover(content, id));
+        })
+    }
+
     documentBody.appendChild(assembleParts(sections, 'container'));
     
-    documentBody.appendChild(components.popover(
-        components.form('task', currentVisibleList), 'createNewTask'));
-
-    documentBody.appendChild(components.popover(
-        components.form('filter', currentVisibleList), 'filterTasks'));
-
-    documentBody.appendChild(components.popover(
-        components.sort(currentVisibleList), 'sortTasks'));
-
-    documentBody.appendChild(components.popover(
-        components.clear(), 'confirmClear'));
+    createPopovers();
 
     document.addEventListener('tasks-updated', () => {
         refreshList();
