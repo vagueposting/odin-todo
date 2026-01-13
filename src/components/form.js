@@ -51,7 +51,7 @@ const form = new Map([
         return inputHelper('textarea', null, `${type}-description`, 'Description');
     }],
     ['createdDate', () => {
-        if (type === 'task') return;
+        if (type !== 'filter') return;
 
         const shell = document.createElement('div');
         shell.classList.add('filterOption');
@@ -179,7 +179,7 @@ const form = new Map([
         }
     }],
     ['status', () => {
-        if (type === 'task') return;
+        if (type !== 'filter') return;
 
         const shell = document.createElement('div');
         shell.classList.add('filterOption');
@@ -194,6 +194,7 @@ const form = new Map([
         );
 
         shell.appendChild(toggle);
+        
         shell.appendChild(status);
         return shell;
     }],
@@ -339,20 +340,30 @@ const form = new Map([
                                 const tagDivs = document.querySelectorAll(
                                     `#${type}-tagContainer > .tag`);
                                 tagDivs.forEach(tag => tag.remove());
-                            } /* else if (key === '__isSubtask') {
+                            } else if (key === '__isSubtask') {
                                 taskDetails[key] = type === 'subtask' ? true : false;
-                            } */ else {
+                            } else {
                                 taskDetails[key] = element.value;
                             }
                         }
                     });
 
-                    taskDetails.subtasks = [];
-
-                    const tasksAdded = new CustomEvent('task-added', {
-                        detail: taskDetails
-                    });
-                    document.dispatchEvent(tasksAdded);
+                    const parentID = form.getAttribute('data-parent-id');
+                    
+                    if (type === 'subtask' && parentID) {
+                        document.dispatchEvent(new CustomEvent('subtask-added', {
+                            detail: {
+                                id: parentID,
+                                config: taskDetails
+                            }
+                        }));
+                    } else {
+                        document.dispatchEvent(new CustomEvent('task-added', {
+                            detail: {
+                                config: taskDetails
+                            }
+                        }))
+                    }
 
                     form.reset();
                 });
@@ -362,7 +373,7 @@ const form = new Map([
         return shell;
     }],
     ['submit-filter', () => {
-        if (type === 'task') return;
+        if (type !== 'filter') return;
 
         const shell = document.createElement('div');
         const submit = document.createElement('button');

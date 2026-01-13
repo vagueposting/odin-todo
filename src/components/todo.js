@@ -1,5 +1,6 @@
 import { format, isBefore } from 'date-fns';
 import { Button, assembleParts } from '../utils.js';
+import { components } from "../components.js"
 
 export const ToDo = (task, expanded = false) => {
     const parts = new Map([
@@ -96,87 +97,35 @@ export const ToDo = (task, expanded = false) => {
             if (!expanded) return;
 
             const shell = document.createElement('div');
-            const button = new Button('Create subtask', 'newSubtask').render(); 
+            const popoverId = `add-subtask-${task.id}`;
+            
+            const button = new Button('Add subtask', popoverId).render(); 
+
+            const formPopover = components.popover(
+                (() => {
+                    const form = components.form('subtask');
+                    form.setAttribute('data-parent-id', task.id);
+                    return form;
+                })(),
+                popoverId);
 
             shell.appendChild(button);
+            shell.appendChild(formPopover);
 
             return shell;
         }],
         ['subtask-list', () => {
             if (!expanded) return;
-
             const { subtasks } = task;
-
             if (subtasks.length <= 0) return;
 
             const container = document.createElement('div');
+            container.classList.add('subtaskContainer');
 
-            const printSubtask = (subtask) => { 
-                const parts = new Map([
-                    ['shell', () => {
-                        const shell = document.createElement('div');
-                        shell.classList.add('subtask');
-                        return shell;
-                    }],
-                    ['title', () => {
-                        const header = document.createElement('h2');
-                        header.textContent = subtask.title;
-                        return header;
-                    }],
-                    ['due-date', () => {
-                        const { dueDate } = subtask;
-                        const dateText = document.createElement('span');
-                        dateText.classList.add('due');
-                        
-                        if (!dueDate) {
-                            dateText.textContent = 'No date set';
-                            return dateText;
-                        }
-
-                        const dateObj = new Date(dueDate);
-
-                        if (isNaN(dateObj.getTime())) {
-                            dateText.textContent = 'Invalid Date';
-                            return dateText;
-                        }
-
-                        dateText.textContent = format(dateObj,
-                            'dd MMMM, yyyy'
-                        );
-
-                        if (!isBefore(new Date(), dateObj)) {
-                            dateText.classList.add('urgent');
-                        }
-
-                        return dateText;
-                    }],
-                    ['description', () => {
-                        const descrip = document.createElement('p');
-                        descrip.textContent = subtask.description;
-                        return descrip;
-                    }],
-                    ['tags', () => {
-                        const { tags } = subtask;
-                        const shell = document.createElement('div');
-                        shell.classList.add('tagList');
-
-                        if (tags) {
-                            tags.forEach((t) => {
-                                const tagElement = document.createElement('span');
-                                tagElement.textContent = t;
-                                shell.appendChild(tagElement);
-                            });
-                        };
-
-                        return shell;
-                    }]
-                ]);
-                
-                return assembleParts(parts);
-            }
-
-            subtasks.forEach(subtask => container.appendChild(
-                printSubtask(subtask)));
+            subtasks.forEach(subtask => {
+                const subtaskElement = components.todo(subtask);
+                container.appendChild(subtaskElement);
+            });
 
             return container;
         }],

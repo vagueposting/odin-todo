@@ -10,6 +10,5 @@ import './style/checkbox.css';
 
 const state = StateHandler();
 const data = DataHandler(state);
-console.table(data.viewList());
 
 DisplayHandler(data, state); 
