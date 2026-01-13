@@ -96,7 +96,7 @@ export const ToDo = (task, expanded = false) => {
             if (!expanded) return;
 
             const shell = document.createElement('div');
-            const button = new Button('Create subtask', 'newSubtask')
+            const button = new Button('Create subtask', 'newSubtask').render(); 
 
             shell.appendChild(button);
 
