@@ -101,7 +101,13 @@ export const ToDo = (task, expanded = false) => {
             shell.classList.add('addSubtask');
             const popoverId = `add-subtask-${task.id}`;
             
-            const button = new Button('Add subtask', popoverId).render()
+            const button = new Button('Add subtask', popoverId);
+
+            button.onClick(() => {
+                document.querySelector(`#expand-${task.id}`)
+                    .classList
+                    .add('createSubtask');
+            });
 
             const formPopover = components.popover(
                 (() => {
@@ -111,8 +117,21 @@ export const ToDo = (task, expanded = false) => {
                 })(),
                 popoverId);
 
-            shell.appendChild(button);
-            shell.appendChild(formPopover);
+            console.log(formPopover);
+
+            formPopover.classList.add('subtaskForm');
+
+            formPopover.addEventListener('toggle', (e) => {
+                if (e.newState === 'closed') {
+                    document
+                        .querySelector(`#expand-${task.id}`)
+                        .classList.remove('createSubtask');
+                };
+            });
+
+            document.body.appendChild(formPopover);
+
+            shell.appendChild(button.render());
 
             return shell;
         }],

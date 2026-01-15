@@ -9,8 +9,10 @@ export const Form = (type, currentList) => {
 const form = new Map([
     ['shell', () => {
         const shell = document.createElement('form');
-        shell.id = `form-${type}`;
 
+        if (type === 'subtask') return shell;
+            
+        shell.id = `form-${type}`;
         return shell;
     }],
     ['title', () => {
@@ -357,6 +359,11 @@ const form = new Map([
                                 config: taskDetails
                             }
                         }));
+
+                        const parentTask = document.querySelector(`#expand-${parentID}`)
+                        if (parentTask) {
+                            parentTask.classList.remove('createSubtask');
+                        }
                     } else {
                         document.dispatchEvent(new CustomEvent('task-added', {
                             detail: {

@@ -145,13 +145,21 @@ body {
 }
 
 [popover].expanded {
-    position: fixed;
+    position: absolute;
     top: 50%;
     left: 50%;
     transform: translate(-50%, -50%);
-
     padding: 0.75rem 1rem;
     width: 50vw;
+    transition: left 0.5s ease-out, opacity 0.5s ease; 
+}
+
+[popover].expanded.createSubtask {
+    anchor-name: --expanded-task-view;
+    position: absolute;
+    left: 65%;
+
+    transition: left 2s ease-in;
 }
 
 .expanded::backdrop {
@@ -325,13 +333,8 @@ body {
 }
 
 [popover] {
-    display: relative;
-
     padding: 1.5rem;
-
     font-size: 0.75rem;
-
-    /* From https://css.glass */
     background: rgba(255, 255, 255, 0.65);
     border-radius: 16px;
     box-shadow: 0 4px 30px rgba(0, 0, 0, 0.1);
@@ -340,11 +343,33 @@ body {
     border: 1px solid rgba(255, 255, 255, 0.3);
 
     opacity: 0;
-    transition: opacity 0.5s, overlay 0.5s allow-discrete, display 0.5s allow-discrete;
+    transition: 
+        opacity 0.5s ease-out, 
+        overlay 0.5s allow-discrete, 
+        display 0.5s allow-discrete;
 }
-
 [popover]:popover-open {
     opacity: 1;
+}
+
+[popover].subtaskForm {
+    /* Position relative to viewport */
+    position: fixed !important;
+    
+    /* Center vertically, left of expanded todo */
+    left: 5% !important; /* Adjust this value based on your layout */
+    top: 50% !important;
+    transform: translateY(-50%) !important;
+    
+    width: 400px !important;
+    max-height: 500px !important;
+    margin: 0 !important;
+    padding: 1.5rem !important;
+    overflow-y: auto !important;
+
+    transition: 
+        opacity 3s ease-out, 
+        display 3s allow-discrete;
 }
 
 [popover] form {
