@@ -357,7 +357,7 @@ body {
     position: fixed !important;
     
     /* Center vertically, left of expanded todo */
-    left: 5% !important; /* Adjust this value based on your layout */
+    left: 18vw !important; /* Adjust this value based on your layout */
     top: 50% !important;
     transform: translateY(-50%) !important;
     
