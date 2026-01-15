@@ -344,7 +344,7 @@ export const DataHandler = (state) => {
     document.addEventListener('subtask-added', function (e) {
         const { id, config } = e.detail;
 
-        const targetTask = ToDoList[findTaskIndexByID(id)];
+        const targetTask = ToDoList[findTaskIndexByID(id, ToDoList)];
 
         targetTask.addSubtask(config);
     });

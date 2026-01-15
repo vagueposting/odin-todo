@@ -35,6 +35,7 @@ export const ToDo = (task, expanded = false) => {
             
             const title = document.createElement('span');
             title.textContent = task.title;
+            title.classList.add('taskName');
             
             wrapper.appendChild(checkbox);
             wrapper.appendChild(checkBoxLabel);
@@ -97,9 +98,10 @@ export const ToDo = (task, expanded = false) => {
             if (!expanded) return;
 
             const shell = document.createElement('div');
+            shell.classList.add('addSubtask');
             const popoverId = `add-subtask-${task.id}`;
             
-            const button = new Button('Add subtask', popoverId).render(); 
+            const button = new Button('Add subtask', popoverId).render()
 
             const formPopover = components.popover(
                 (() => {
@@ -124,6 +126,7 @@ export const ToDo = (task, expanded = false) => {
 
             subtasks.forEach(subtask => {
                 const subtaskElement = components.todo(subtask);
+                subtaskElement.classList.add('sub');
                 container.appendChild(subtaskElement);
             });
 
@@ -146,7 +149,7 @@ export const ToDo = (task, expanded = false) => {
         }],
 
         ['more', () => {
-            if (expanded) return;
+            if (expanded || task.__isSubtask ) return;
             const shell = document.createElement('span');
             // TODO: create the "expanded view"
             const link = new Button('more info...', `expand-${task.id}`)
