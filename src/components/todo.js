@@ -157,11 +157,25 @@ export const ToDo = (task, expanded = false) => {
             shell.classList.add('tagList');
 
             if (tags) {
-                tags.forEach((t) => {
+                const cutTag = (i) => {
+                    const p = (i / (tags.length - 1)) * 100
+
+                    return `${p}%`
+                };
+
+                for (let i = 0; i < tags.length; i++) {
                     const tagElement = document.createElement('span');
-                    tagElement.textContent = t;
+
+                    if (task.__isSubtask || expanded) {
+                        tagElement
+                            .style
+                            .backgroundPosition = `${cutTag(i)} 50%`
+                    }
+
+                    tagElement.textContent = tags[i];
+
                     shell.appendChild(tagElement);
-                })
+                }
             };
 
             return shell;

@@ -151,7 +151,9 @@ body {
     transform: translate(-50%, -50%);
     padding: 0.75rem 1rem;
     width: 50vw;
-    transition: left 0.5s ease-out, opacity 0.5s ease; 
+    transition: left 0.25s ease-out, opacity 0.25s ease; 
+
+    z-index: 10;
 }
 
 [popover].expanded.createSubtask {
@@ -169,29 +171,22 @@ body {
 
 .expanded > .todo {
     padding: 0;
+}
 
+.expanded > .todo,
+div.todo.sub {
     display: grid;
     grid-template-columns: 0.50fr repeat(2, 1fr) 1fr;
     grid-template-rows: 1fr min-content 0.75fr auto;
+
     justify-content: center;
     align-items: center;
     gap: 10px;
 }
 
-/* Remove all background effects from subtodos */
-.todo.expanded .todo.sub {
-    background: transparent !important;
-    backdrop-filter: none !important;
-    -webkit-backdrop-filter: none !important;
+.todo.sub {     
     border: 1px solid rgba(255, 255, 255, 0.5) !important;
     box-shadow: inset 0 0 15px rgba(255, 255, 255, 0.3) !important;
-}
-
-/* Enhance parent's glass effect */
-.todo.expanded {
-    background: rgba(255, 255, 255, 0.7);
-    backdrop-filter: blur(15px);
-    -webkit-backdrop-filter: blur(15px);
 }
 
 .subtaskContainer {
@@ -272,11 +267,26 @@ body {
     border-radius: 16px;
 }
 
-/* Apply the 'hole' effect to tagLists and Sub-todos */
 [popover].expanded .todo .tagList {
     grid-column: 1 / 4;
+    display: flex;
+    background: transparent;
+    gap: 0.25rem;
+    padding: 0.25rem;
 
-    background: #b7eea2;
+    box-shadow: none;
+}
+
+[popover].expanded .todo .tagList span {
+    background: var(--main-gradient);
+    background-size: 400% 100%;
+    
+    backdrop-filter: none !important;
+    -webkit-backdrop-filter: none !important;
+    
+    border: 1px solid rgba(255, 255, 255, 0.5) !important;
+    border-radius: 12px;
+    padding: 0.15rem 0.5rem;
 }
 
 .addSubtask {
@@ -353,11 +363,9 @@ body {
 }
 
 [popover].subtaskForm {
-    /* Position relative to viewport */
     position: fixed !important;
     
-    /* Center vertically, left of expanded todo */
-    left: 18vw !important; /* Adjust this value based on your layout */
+    left: 18vw !important; 
     top: 50% !important;
     transform: translateY(-50%) !important;
     
@@ -367,9 +375,10 @@ body {
     padding: 1.5rem !important;
     overflow-y: auto !important;
 
+    z-index: 5;
+
     transition: 
-        opacity 3s ease-out, 
-        display 3s allow-discrete;
+        opacity 0.5s ease-out;
 }
 
 [popover] form {
